@@ -1,0 +1,33 @@
+project/
+├── app/
+│   ├── __init__.py
+│   ├── config.py
+│   ├── extensions.py
+│   ├── models/
+│   │   ├── __init__.py
+│   │   ├── user.py
+│   │   ├── quiz.py
+│   │   ├── question.py
+│   │   ├── answer.py
+│   │   └── result.py
+│   ├── services/
+│   │   ├── __init__.py
+│   │   ├── scoring_service.py
+│   │   └── leaderboard_service.py
+│   ├── routes/
+│   │   ├── __init__.py
+│   │   ├── auth.py
+│   │   ├── admin.py
+│   │   └── student.py
+│   ├── sockets/
+│   │   ├── __init__.py
+│   │   └── quiz_events.py
+│   └── utils/
+│       ├── __init__.py
+│       └── helpers.py
+├── templates/        ✅ SAME
+├── static/           ✅ SAME
+├── wsgi.py
+├── app.py            (backup only)
+├── requirements.txt
+└── Procfile
