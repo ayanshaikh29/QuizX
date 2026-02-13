@@ -1,0 +1,227 @@
+/* ================= CONTAINERS ================= */
+.create-quiz-box {
+    background: white;
+    border-radius: 20px;
+    padding: 25px 35px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+    margin-bottom: 40px;
+    border: 1px solid #f1f5f9;
+}
+
+.custom-input {
+    border-radius: 12px;
+    padding: 12px 18px;
+    border: 1px solid #e2e8f0;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.custom-input:focus {
+    border-color: #6fbf4a;
+    box-shadow: 0 0 0 4px rgba(111, 191, 74, 0.1);
+}
+
+.btn-success-custom {
+    background: #6fbf4a;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 12px;
+    font-weight: 700;
+    transition: all 0.3s;
+}
+
+.btn-success-custom:hover {
+    background: #5ba33a;
+    transform: translateY(-2px);
+}
+
+/* ================= PILLS ================= */
+.nav-pills .nav-link {
+    color: #64748b;
+    font-weight: 600;
+    padding: 10px 24px;
+    border-radius: 10px;
+    transition: 0.3s;
+}
+
+.nav-pills .nav-link.active {
+    background: #1e293b;
+    color: white;
+}
+
+/* ================= QUIZ CARDS ================= */
+.quiz-card-pro {
+    background: white;
+    border-radius: 24px;
+    padding: 28px;
+    position: relative;
+    border: 1px solid #f1f5f9;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.03);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    height: 100%;
+}
+
+.quiz-card-pro:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+}
+
+.timer-border { border-left: 4px solid #0369a1; }
+
+.card-status {
+    margin-bottom: 15px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.status-pill {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 30px;
+    letter-spacing: 0.5px;
+}
+
+.live { background: #dcfce7; color: #15803d; }
+.paused { background: #fef9c3; color: #a16207; }
+.ended { background: #f1f5f9; color: #475569; }
+.draft { background: #f3e8ff; color: #7e22ce; }
+.locked { background: #ffedd5; color: #c2410c; }
+.timer { background: #e0f2fe; color: #0369a1; }
+
+/* Icon Styles */
+.delete-icon {
+    opacity: 0.6;
+    transition: 0.2s;
+    font-size: 14px;
+}
+
+.delete-icon:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.quiz-name {
+    font-weight: 800;
+    font-size: 19px;
+    color: #1e293b;
+    margin-bottom: 4px;
+}
+
+.quiz-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.info-item {
+    font-size: 13px;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* ================= JOIN AREA ================= */
+.join-area {
+    background: #f8fafc;
+    border-radius: 16px;
+    padding: 12px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.code-box small { display: block; color: #94a3b8; font-size: 10px; }
+.code-box strong { font-size: 16px; color: #334155; }
+.link-icon { color: #6fbf4a; transition: 0.2s; }
+.link-icon:hover { color: #5ba33a; transform: scale(1.2); }
+
+/* ================= ACTIONS ================= */
+.card-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.action-btn {
+    font-size: 13px;
+    font-weight: 700;
+    padding: 8px 16px;
+    border-radius: 10px;
+    flex-grow: 1;
+    text-align: center;
+    border: none;
+    transition: 0.2s;
+}
+
+.edit { background: #f1f5f9; color: #475569; }
+.start { background: #6fbf4a; color: white; }
+.pause { background: #facc15; color: #854d0e; }
+.resume { background: #22c55e; color: white; }
+.stop { background: #ef4444; color: white; }
+.leaderboard { background: #1e293b; color: white; max-width: 45px; }
+
+.action-btn:hover {
+    filter: brightness(0.9);
+    transform: translateY(-2px);
+}
+/* --- NEW JOIN AREA STYLING --- */
+.join-area-pro {
+    background: #f8fafc;
+    border-radius: 16px;
+    padding: 15px;
+    border: 1px solid #edf2f7;
+}
+
+.join-link {
+    display: block;
+    font-size: 12px;
+    color: #0d6efd;
+    text-decoration: none;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-top: 5px;
+    font-weight: 500;
+}
+
+.join-link:hover {
+    text-decoration: underline;
+    color: #0a58ca;
+}
+
+.copy-btn {
+    background: #e2e8f0;
+    border-radius: 8px;
+    border: none;
+    padding: 6px 10px;
+    transition: 0.2s;
+    color: #475569;
+}
+
+.copy-btn:hover {
+    background: #cbd5e1;
+    transform: scale(1.1);
+    color: #1e293b;
+}
+/* abc */
+.code-box small {
+    display: block;
+    color: #94a3b8;
+    font-size: 10px;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.code-box strong {
+    font-size: 18px;
+    color: #1e293b;
+    letter-spacing: 1px;
+}

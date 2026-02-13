@@ -1,0 +1,59 @@
+:root {
+    --primary-lime: #D4F469;
+    --text-dark: #1F2937;
+    --text-grey: #6B7280;
+    --bg-color: #FAFAFA;
+    --gold: #FFD700;
+    --silver: #C0C0C0;
+    --bronze: #CD7F32;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+body { background-color: var(--bg-color); color: var(--text-dark); padding-bottom: 120px; }
+
+.header { padding: 2.5rem 1.5rem; text-align: center; background: white; border-bottom: 1px solid #eee; }
+.header h1 { font-weight: 800; font-size: 2rem; margin-bottom: 0.5rem; letter-spacing: -0.5px; }
+.finish-tag { background: var(--text-dark); color: var(--primary-lime); padding: 6px 18px; border-radius: 50px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+
+/* Stats Section */
+.stats-container { display: flex; justify-content: center; gap: 1rem; padding: 2rem 1.5rem; max-width: 600px; margin: 0 auto; }
+.stat-card { background: white; padding: 1.5rem; border-radius: 24px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.03); flex: 1; border: 1px solid #f0f0f0; }
+.stat-card i { font-size: 1.5rem; margin-bottom: 0.8rem; color: var(--text-grey); }
+.stat-val { display: block; font-size: 1.6rem; font-weight: 800; color: var(--text-dark); }
+.stat-label { font-size: 0.8rem; color: var(--text-grey); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+
+.leaderboard-title { font-weight: 800; text-align: center; margin-top: 20px; font-size: 1.4rem; }
+
+/* Podium Section */
+.podium-section { padding: 2rem 1rem; display: flex; justify-content: center; align-items: flex-end; gap: 0.5rem; min-height: 250px; }
+.podium-item { display: flex; flex-direction: column; align-items: center; position: relative; width: 30%; max-width: 110px; }
+.podium-item.first { width: 38%; max-width: 130px; }
+
+.avatar-circle { width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; border: 4px solid transparent; box-shadow: 0 8px 25px rgba(0,0,0,0.12); font-size: 1.2rem; }
+.first .avatar-circle { width: 95px; height: 95px; border-color: var(--primary-lime); font-size: 1.8rem; }
+.second .avatar-circle { border-color: var(--silver); }
+.third .avatar-circle { border-color: var(--bronze); }
+
+.crown { position: absolute; top: -30px; color: var(--primary-lime); font-size: 1.8rem; transform: rotate(-10deg); filter: drop-shadow(0 4px 5px rgba(0,0,0,0.1)); }
+.p-name { font-weight: 700; font-size: 0.95rem; margin-top: 12px; }
+.p-score { font-size: 0.8rem; color: var(--text-grey); font-weight: 700; background: #eee; padding: 2px 8px; border-radius: 10px; margin-top: 4px; }
+
+/* List Section */
+.list-section { padding: 0 1.5rem; max-width: 500px; margin: 0 auto; }
+.player-row { background: white; border-radius: 20px; padding: 1rem 1.2rem; display: flex; align-items: center; margin-bottom: 0.8rem; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
+.player-row.is-me { background-color: var(--primary-lime); border: 2px solid var(--text-dark); box-shadow: 0 8px 20px rgba(212, 244, 105, 0.3); }
+
+.r-rank { width: 35px; font-weight: 800; font-size: 0.95rem; }
+.r-avatar { width: 40px; height: 40px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-weight: 700; color: white; margin-right: 15px; }
+.r-name { flex: 1; font-weight: 700; font-size: 1rem; }
+.r-score { font-weight: 800; background: rgba(0,0,0,0.06); padding: 5px 12px; border-radius: 12px; font-size: 0.85rem; }
+
+/* Footer */
+.btn-footer { position: fixed; bottom: 0; width: 100%; padding: 1.5rem; background: linear-gradient(to top, white 80%, transparent); display: flex; justify-content: center; z-index: 100; }
+.btn-dash { background: var(--text-dark); color: var(--primary-lime); padding: 1.1rem 2rem; border-radius: 100px; text-decoration: none; font-weight: 800; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.15); transition: transform 0.2s; }
+.btn-dash:active { transform: scale(0.98); }
+
+
+.avatar-grad-1 { background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); }
+.avatar-grad-2 { background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); }
+.avatar-grad-3 { background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); }

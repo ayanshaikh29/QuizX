@@ -1,0 +1,135 @@
+:root {
+    --primary: #6fbf4a;
+    --dark: #1e293b;
+    --text-muted: #64748b;
+    --border: #f1f5f9;
+}
+
+/* Container & Animation */
+.profile-container {
+    background: white;
+    border-radius: 30px;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.05);
+    border: 1px solid var(--border);
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+/* Left Brand Section */
+.profile-sidebar-brand {
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 40px;
+    border-right: 1px solid var(--border);
+}
+
+.avatar-wrapper {
+    position: relative;
+}
+
+.main-avatar {
+    width: 120px;
+    height: 120px;
+    background: var(--primary);
+    color: white;
+    font-size: 48px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 40px;
+    box-shadow: 0 15px 30px rgba(111, 191, 74, 0.3);
+}
+
+.edit-avatar-btn {
+    position: absolute;
+    bottom: -5px;
+    right: -5px;
+    width: 35px;
+    height: 35px;
+    background: white;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.badge-role {
+    background: rgba(111, 191, 74, 0.1);
+    color: var(--primary);
+    padding: 6px 16px;
+    border-radius: 30px;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Detail Section */
+.detail-row {
+    padding: 20px 0;
+    border-bottom: 1px solid #f8fafc;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.detail-label {
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.detail-value {
+    color: var(--dark);
+    font-weight: 700;
+    font-size: 15px;
+}
+
+/* Actions */
+.btn-save-profile {
+    background: var(--primary);
+    color: white;
+    border-radius: 14px;
+    padding: 12px 30px;
+    font-weight: 700;
+    border: none;
+    transition: 0.3s;
+}
+
+.btn-save-profile:hover {
+    background: #5ba33a;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.btn-logout-alt {
+    background: #fef2f2;
+    color: #ef4444;
+    border-radius: 14px;
+    padding: 12px 30px;
+    font-weight: 700;
+    border: none;
+    margin-left: 10px;
+}
+
+.btn-logout-alt:hover {
+    background: #fee2e2;
+}
+
+/* Animation */
+.animate-slide-up {
+    animation: slideUp 0.7s cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(40px); }
+    to { opacity: 1; transform: translateY(0); }
+}

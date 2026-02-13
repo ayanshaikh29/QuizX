@@ -1,0 +1,125 @@
+:root {
+    --primary: #16a34a;
+    --primary-dark: #16a34a;
+    --bg-light: #f8fafc;
+    --text-main: #1e293b;
+    --glass: rgba(255, 255, 255, 0.95);
+}
+
+body {
+    margin: 0; font-family: 'Plus Jakarta Sans', sans-serif;
+    background: var(--bg-light); color: var(--text-main);
+    height: 100vh; display: flex; flex-direction: column;
+    overflow: hidden;
+}
+
+/* --- Navbar --- */
+.navbar {
+    padding: 0.8rem 2rem;
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid #e2e8f0;
+    display: flex; justify-content: space-between; align-items: center;
+    z-index: 100;
+}
+
+.nav-left { display: flex; align-items: center; gap: 25px; }
+.logo { font-size: 1.5rem; font-weight: 800; color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 8px; }
+.nav-links { display: flex; gap: 15px; }
+
+.btn-nav {
+    text-decoration: none; color: #64748b; font-weight: 600; font-size: 0.9rem;
+    padding: 8px 16px; border-radius: 10px; transition: 0.3s;
+    display: flex; align-items: center; gap: 6px;
+}
+.btn-nav:hover { background: #f1f5f9; color: var(--primary); }
+
+/* --- Layout --- */
+.content-grid {
+    display: grid; grid-template-columns: 1fr 380px;
+    flex-grow: 1; overflow: hidden;
+}
+
+/* --- Waiting Area --- */
+.waiting-area {
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    padding: 40px; border-right: 1px solid #e2e8f0;
+    background: radial-gradient(circle at top right, #ffffff, #f1fdf6);
+}
+
+.badge-live {
+    background: #dcfce7; color: #16a34a;
+    padding: 6px 16px; border-radius: 50px;
+    font-size: 0.8rem; font-weight: 700; margin-bottom: 15px;
+    display: inline-flex; align-items: center; gap: 6px;
+}
+
+/* Spinner Animation */
+.spinner-container { position: relative; margin-bottom: 30px; }
+.spinner {
+    width: 100px; height: 100px;
+    border: 8px solid #e8f8f0; border-top: 8px solid var(--primary);
+    border-radius: 50%; animation: spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+}
+.spinner-icon {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.5rem; color: var(--primary);
+}
+
+.quiz-details { text-align: center; max-width: 500px; }
+.quiz-details h1 { font-size: 2.8rem; margin: 0; font-weight: 800; letter-spacing: -1px; }
+
+.tip-box {
+    margin-top: 40px; padding: 20px; background: white;
+    border-radius: 20px; border: 1px solid #e2e8f0;
+    max-width: 400px; box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+}
+.tip-box small { color: var(--primary); font-weight: 700; text-transform: uppercase; }
+
+/* --- Participants Sidebar --- */
+.participants-panel {
+    background: white; display: flex; flex-direction: column; padding: 25px;
+}
+.panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.count-tag { background: var(--text-main); color: white; padding: 4px 12px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; }
+
+.user-list { list-style: none; padding: 0; overflow-y: auto; flex-grow: 1; }
+.user-card {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px; background: #f8fafc;
+    border-radius: 15px; margin-bottom: 12px;
+    border: 1px solid transparent; transition: 0.3s;
+}
+.user-card:hover { border-color: var(--primary); background: white; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+
+.u-avatar {
+    width: 40px; height: 40px; background: var(--primary);
+    color: white; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 1.1rem;
+}
+
+/* --- Countdown Overlay --- */
+.start-overlay {
+    display: flex; flex-direction: column; 
+    height: 100vh; width: 100vw; 
+    justify-content: center; align-items: center; 
+    background: var(--primary); color: white;
+}
+.start-overlay i { font-size: 5rem; margin-bottom: 20px; }
+.start-overlay h1 { font-size: 4rem; font-weight: 900; }
+
+/* --- Footer -- */
+.footer {
+    padding: 12px 30px; background: white; border-top: 1px solid #e2e8f0;
+    display: flex; justify-content: space-between; font-size: 0.85rem; color: #94a3b8;
+}
+
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+@media (max-width: 900px) {
+    .content-grid { grid-template-columns: 1fr; }
+    .participants-panel { display: none; }
+}
