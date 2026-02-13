@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizX | {{ quiz.title }}</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <style>
+        :root {
+            --primary: #16a34a;
+            --primary-light: #f0fdf4;
+            --dark: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --bg-light: #f8fafc;
+            --success: #10b981;
+            --success-light: #d1fae5;
+            --danger: #ef4444;
+            --danger-light: #fef2f2;
+            --warning: #f59e0b;
+            --warning-light: #fffbeb;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(145deg, #f8fafc 0%, #f1f5f9 100%);
+            min-height: 100vh;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .nav-floater {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(12px);
+            border-radius: 60px;
+            padding: 15px 30px;
+            border: 1px solid rgba(255,255,255,0.5);
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.1);
+            max-width: 1000px;
+        }
+
+        .brand-text {
+            font-weight: 800;
+            font-size: 1.4rem;
+            color: var(--dark);
+        }
+
+        .brand-text span {
+            color: var(--primary);
+        }
+
+        .timer-badge {
+            background: var(--primary-light);
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-weight: 700;
+            color: var(--primary);
+            display: inline-flex;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(22,163,74,0.15);
+        }
+
+        .timer-badge.warning {
+            background: var(--warning-light);
+            color: var(--warning);
+        }
+
+        .timer-badge.danger {
+            background: var(--danger-light);
+            color: var(--danger);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .quiz-container {
+            max-width: 900px;
+            margin: 30px auto;
+        }
+
+        .question-card {
+            background: white;
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 20px 40px -15px rgba(0,0,0,0.12);
+            border: 1px solid rgba(255,255,255,0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .timer-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: #e2e8f0;
+        }
+
+        .timer-progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), #4ade80);
+            width: 100%;
+            transition: width 1s linear;
+        }
+
+        .question-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--dark);
+            line-height: 1.5;
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+            margin-top: 30px;
+        }
+
+        .option-label {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .option-label input {
+            display: none;
+        }
+
+        .option-label.selected .option-content {
+            border: 2px solid var(--primary);
+            background: var(--primary-light);
+            transform: scale(1.02);
+        }
+
+        .option-content {
+            background: #f8fafc;
+            border: 2px solid transparent;
+            border-radius: 18px;
+            padding: 18px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.2s;
+        }
+
+        .option-content:hover {
+            background: white;
+            border-color: var(--border);
+            box-shadow: 0 8px 16px -6px rgba(0,0,0,0.1);
+        }
+
+        .option-content.correct {
+            background: var(--success-light) !important;
+            border-color: var(--success) !important;
+        }
+
+        .option-content.incorrect {
+            background: var(--danger-light) !important;
+            border-color: var(--danger) !important;
+            opacity: 0.7;
+        }
+
+        .option-key {
+            width: 38px;
+            height: 38px;
+            background: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .option-text {
+            font-weight: 600;
+            color: var(--dark);
+            flex: 1;
+        }
+
+        .btn-submit {
+            background: linear-gradient(145deg, var(--primary), #15803d);
+            color: white;
+            border: none;
+            padding: 16px 48px;
+            border-radius: 60px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            letter-spacing: 0.5px;
+            box-shadow: 0 12px 24px -8px rgba(22,163,74,0.4);
+            transition: all 0.3s;
+            margin-top: 30px;
+        }
+
+        .btn-submit:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 16px 28px -8px rgba(22,163,74,0.5);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .result-banner {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 30px;
+            padding: 40px 60px;
+            box-shadow: 0 30px 60px -15px rgba(0,0,0,0.3);
+            text-align: center;
+            z-index: 9999;
+            min-width: 400px;
+        }
+
+        .result-banner.correct {
+            border: 3px solid var(--success);
+        }
+
+        .result-banner.incorrect {
+            border: 3px solid var(--danger);
+        }
+
+        .result-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+
+        .result-banner.correct .result-icon {
+            color: var(--success);
+        }
+
+        .result-banner.incorrect .result-icon {
+            color: var(--danger);
+        }
+
+        .result-banner h3 {
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+
+<div class="container d-flex justify-content-center sticky-top" style="z-index: 100;">
+    <nav class="nav-floater d-flex justify-content-between align-items-center w-100">
+        <div class="brand-text">Quiz<span>X</span></div>
+        <div class="d-flex align-items-center gap-3">
+            <div class="timer-badge" id="timerBadge">
+                <i class="fas fa-clock me-2"></i>
+                <span id="timerLabel">{{ current_question.time_limit }}s</span>
+            </div>
+            <div class="bg-dark text-white rounded-pill px-3 py-2 fw-bold" style="font-size: 0.9rem;">
+                {{ curIdx + 1 }} / {{ total_questions }}
+            </div>
+        </div>
+    </nav>
+</div>
+
+<div class="quiz-container animate__animated animate__fadeInUp">
+    <div class="question-card">
+        <div class="timer-bar">
+            <div id="progressBar" class="timer-progress"></div>
+        </div>
+
+        <div class="text-center mt-3">
+            <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill">
+                <i class="fas fa-bolt me-1"></i> LIVE QUIZ
+            </span>
+        </div>
+        
+        <h1 class="question-title">{{ current_question.question_text | safe }}</h1>
+
+        <form id="quizForm">
+            <div class="options-grid">
+                {% for opt in current_question.options %}
+                <label class="option-label animate__animated animate__zoomIn" style="animation-delay: {{ loop.index0 * 0.1 }}s">
+                    <input type="radio" name="answer" value="{{ opt.value }}" data-option="{{ opt.value }}">
+                    <div class="option-content" data-option="{{ opt.value }}">
+                        <div class="option-key">{{ opt.key }}</div>
+                        <div class="option-text">{{ opt.text }}</div>
+                    </div>
+                </label>
+                {% endfor %}
+            </div>
+
+            <div class="text-center">
+                <button type="button" id="submitBtn" class="btn-submit">
+                    <i class="fas fa-paper-plane me-2"></i>SUBMIT ANSWER
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+    // ========== VARIABLES ==========
+    const socket = io();
+    const quizId = {{ quiz_id }};  // ✅ FIXED: Now gets correct value
+    const user = "{{ student_name }}";
+    const curIdx = {{ curIdx }};
+    const totalQs = {{ total_questions }};
+
+    let timeLimit = {{ timeLimit }};
+    let timeLeft = timeLimit;
+    let submitted = false;
+    let timerTick = null;
+    let questionStartTime = Date.now();
+
+    // ========== SOCKET CONNECTION ==========
+    socket.emit("join_quiz", { quiz_id: quizId });
+    socket.on('connect', () => { console.log('✅ Connected to quiz'); });
+
+    socket.on("load_next_question", (data) => {
+        if (parseInt(data.quiz_id) !== quizId) return;
+        clearInterval(timerTick);
+        window.location.href = `/student/quiz/${data.quiz_id}?qindex=${data.qindex}`;
+    });
+
+    socket.on("quiz_finished", (data) => {
+        clearInterval(timerTick);
+        if (submitted) {
+            setTimeout(() => {
+                window.location.href = `/student/leaderboard/live/${quizId}?qindex=done`;
+            }, 500);
+        }
+    });
+
+    // ========== TIMER FUNCTION ==========
+    function startTimer() {
+        if (timerTick) clearInterval(timerTick);
+        timerTick = setInterval(() => {
+            if (submitted) { 
+                clearInterval(timerTick); 
+                return; 
+            }
+            
+            timeLeft--;
+            const label = document.getElementById("timerLabel");
+            const badge = document.getElementById("timerBadge");
+            const bar = document.getElementById("progressBar");
+            
+            if (label) label.innerText = Math.max(0, timeLeft) + "s";
+            
+            if (bar) {
+                const percentage = (timeLeft / timeLimit) * 100;
+                bar.style.width = Math.max(0, percentage) + "%";
+            }
+            
+            if (badge) {
+                badge.classList.remove('warning', 'danger');
+                if (timeLeft <= 5) badge.classList.add('danger');
+                else if (timeLeft <= 10) badge.classList.add('warning');
+            }
+            
+            if (timeLeft <= 0) {
+                clearInterval(timerTick);
+                if (!submitted) handleSubmission("No Answer");
+            }
+        }, 1000);
+    }
+
+    startTimer();
+
+    // ========== SUBMIT BUTTON ==========
+    document.getElementById("submitBtn").onclick = () => {
+        if (submitted) return;
+        
+        const sel = document.querySelector("input[name='answer']:checked");
+        if (!sel) {
+            alert("Please select an answer!");
+            return;
+        }
+        handleSubmission(sel.value);
+    };
+
+    // ========== HANDLE SUBMISSION ==========
+    function handleSubmission(val = "No Answer") {
+        if (submitted) return;
+        submitted = true;
+        clearInterval(timerTick);
+
+        const btn = document.getElementById("submitBtn");
+        btn.disabled = true;
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Submitting...`;
+        document.querySelectorAll("input[name='answer']").forEach(i => i.disabled = true);
+
+        const actualTimeTaken = Math.floor((Date.now() - questionStartTime) / 1000);
+        const finalTime = Math.min(actualTimeTaken, timeLimit);
+
+        fetch(`/student/quiz/${quizId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+                question_id: "{{ current_question.id }}",
+                qindex: curIdx,
+                selected_answer: val,
+                time_taken: finalTime
+            })
+        })
+        .then(r => r.json())
+        .then(data => {
+            socket.emit("student_submitted", {
+                quiz_id: quizId,
+                student: user,
+                question_index: curIdx
+            });
+            
+            // ✅ FIXED: Pass correct_answer from server response
+            showAnswerFeedback(val, data.is_correct, data.correct_answer);
+            
+            setTimeout(() => {
+                window.location.href = `/student/leaderboard/live/${quizId}?qindex=${curIdx}`;
+            }, 2500);
+        })
+        .catch(err => {
+            console.error("Error:", err);
+            submitted = false;
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fas fa-paper-plane me-2"></i>SUBMIT ANSWER`;
+            document.querySelectorAll("input[name='answer']").forEach(i => i.disabled = false);
+        });
+    }
+
+    // ✅ FIXED: Show correct answer feedback
+    function showAnswerFeedback(selectedAnswer, isCorrect, correctAnswerFromServer) {
+        // Parse the correct answer (it comes as string representation of list)
+        let correctAnswers = [];
+        try {
+            // Handle different formats: "[1, 2]" or "['A', 'B']" or just "A"
+            const cleaned = correctAnswerFromServer.replace(/[\[\]']/g, '');
+            correctAnswers = cleaned.split(',').map(s => s.trim());
+        } catch (e) {
+            correctAnswers = [String(correctAnswerFromServer)];
+        }
+
+        console.log("Selected:", selectedAnswer);
+        console.log("Correct answers:", correctAnswers);
+        console.log("Is correct:", isCorrect);
+
+        // Highlight options
+        document.querySelectorAll(".option-content").forEach(opt => {
+            const optValue = opt.getAttribute("data-option");
+            
+            // Check if this option is in the correct answers
+            const isCorrectOption = correctAnswers.some(ca => String(ca) === String(optValue));
+            
+            if (isCorrectOption) {
+                opt.classList.add("correct");
+            }
+            
+            // Mark selected wrong answer
+            if (String(optValue) === String(selectedAnswer) && !isCorrect) {
+                opt.classList.add("incorrect");
+            }
+        });
+
+        // Show result banner
+        const banner = document.createElement("div");
+        banner.className = `result-banner ${isCorrect ? "correct" : "incorrect"} animate__animated animate__zoomIn`;
+        banner.innerHTML = `
+            <div class="result-icon">
+                <i class="fas fa-${isCorrect ? 'check-circle' : 'times-circle'}"></i>
+            </div>
+            <h3>${isCorrect ? "CORRECT!" : "INCORRECT"}</h3>
+            <p class="mb-0">${isCorrect ? "Great job! Well done! 🎉" : "Better luck next time! 💪"}</p>
+            ${!isCorrect ? `<p class="text-muted mt-2 small">Correct: ${correctAnswers.join(', ')}</p>` : ''}
+        `;
+        document.body.appendChild(banner);
+
+        if (isCorrect) {
+            confetti({ 
+                particleCount: 100, 
+                spread: 70, 
+                origin: { y: 0.6 } 
+            });
+        }
+        
+        setTimeout(() => banner.remove(), 2200);
+    }
+
+    // ========== KEYBOARD SHORTCUTS ==========
+    document.addEventListener('keydown', function(event) {
+        if (submitted) return;
+        
+        // Number keys 1-4 to select options
+        if (event.key >= '1' && event.key <= '4') {
+            const index = parseInt(event.key) - 1;
+            const radio = document.querySelectorAll('input[name="answer"]')[index];
+            if (radio) {
+                radio.checked = true;
+                radio.dispatchEvent(new Event('change'));
+            }
+        }
+        
+        // Enter to submit
+        if (event.key === 'Enter') {
+            document.getElementById("submitBtn").click();
+        }
+    });
+
+    // ========== OPTION SELECTION STYLING ==========
+    document.querySelectorAll('input[name="answer"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            document.querySelectorAll('.option-label').forEach(label => {
+                label.classList.remove('selected');
+            });
+            if (this.checked) {
+                this.parentElement.classList.add('selected');
+            }
+        });
+    });
+</script>
+</body>
+</html>

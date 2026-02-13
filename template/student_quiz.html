@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizX | Live Quizzes</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/student_dashboard.css') }}">
+    <style>
+        .status-pill {
+            padding: 6px 12px;
+            border-radius: 50px;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+        }
+        .live-pulse { background: #fef2f2; color: #ef4444; border: 1px solid #fee2e2; }
+        .waiting-pulse { background: #f0f9ff; color: #0ea5e9; border: 1px solid #e0f2fe; }
+        .quiz-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            width: 100%;
+        }
+        .info-tag {
+            background: #f8fafc;
+            padding: 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+            transition: all 0.3s ease;
+        }
+        .info-tag i { color: #6fbf4a; }
+        .student-card-pro:hover .info-tag { background: #f1f5f9; }
+    </style>
+</head>
+<body>
+
+<div class="dashboard-wrapper">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="QuizX Logo" style="height:80px;">
+            </div>
+        </div> <nav class="sidebar-nav">
+            <a href="{{ url_for('student.dashboard') }}" class="nav-link"><i class="fas fa-th-large"></i> Dashboard</a>
+            <a href="{{ url_for('student.quizzes') }}" class="nav-link active"><i class="fas fa-play-circle"></i> Live Quizzes</a>
+            <a href="{{ url_for('student.history') }}" class="nav-link"><i class="fas fa-history"></i> My History</a>
+            <a href="{{ url_for('auth.profile') }}" class="nav-link"><i class="fas fa-user-circle"></i> Profile</a>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <a href="{{ url_for('auth.logout') }}" class="logout-link"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="content-header">
+            <div class="header-title">
+                <h4 class="fw-bold mb-0">Available Quizzes</h4>
+                <p class="text-muted small mb-0">Join active sessions or waiting rooms</p>
+            </div>
+            <div class="header-user d-flex align-items-center gap-3">
+                <div class="text-end d-none d-sm-block">
+                    <p class="fw-bold mb-0 small">{{ session.username }}</p>
+                    <p class="text-success mb-0 tiny">Online</p>
+                </div>
+                <img src="https://ui-avatars.com/api/?name={{ session.username }}&background=6fbf4a&color=fff" class="avatar">
+            </div>
+        </header>
+
+        <div class="container-fluid p-4">
+            {% if quizzes %}
+                <div class="row g-4">
+                    {% for quiz in quizzes %}
+                    <div class="col-xl-4 col-md-6 animate-slide-up" style="animation-delay: {{ loop.index0 * 0.1 }}s">
+                        <div class="student-card-pro">
+                            <div class="d-flex justify-content-between align-items-center w-100 mb-3">
+                                {% if quiz.is_active %}
+                                    <span class="status-pill live-pulse"><i class="fas fa-circle me-1 small"></i> LIVE</span>
+                                {% else %}
+                                    <span class="status-pill waiting-pulse"><i class="fas fa-clock me-1 small"></i> WAITING</span>
+                                {% endif %}
+                                <span class="text-muted tiny">#{{ quiz.join_code }}</span>
+                            </div>
+
+                            <h4 class="fw-extrabold mb-3">{{ quiz.title }}</h4>
+                            
+                            <div class="quiz-info-grid mb-4">
+                                <div class="info-tag text-center p-2">
+                                    <i class="fas fa-question-circle me-1"></i> 
+                                    <span>{{ quiz.questions|length if quiz.questions else quiz.question_count }} Questions</span>
+                                </div>
+                                <div class="info-tag text-center p-2">
+                                    <i class="fas fa-stopwatch me-1"></i> 
+                                    <span>{% if quiz.has_timer %}Timed{% else %}No Limit{% endif %}</span>
+                                </div>
+                            </div>
+
+                            {% if quiz.is_active %}
+                                <a href="{{ url_for('student.attempt_quiz', quiz_id=quiz.id) }}" class="btn btn-action-pill btn-green-glow w-100 text-center">
+                                    Join Quiz <i class="fas fa-bolt ms-2"></i>
+                                </a>
+                            {% else %}
+                                <a href="{{ url_for('student.waiting_room', quiz_id=quiz.id) }}" class="btn btn-action-pill btn-blue-glow w-100 text-center">
+                                    Enter Room <i class="fas fa-door-open ms-2"></i>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5 animate-slide-up">
+                    <div class="card-glass-icon mx-auto mb-4" style="width: 100px; height: 100px; font-size: 3rem;">
+                        <i class="fas fa-wind"></i>
+                    </div>
+                    <h4 class="fw-extrabold">No Quizzes Available</h4>
+                    <p class="text-muted">Check back later for new sessions!</p>
+                </div>
+            {% endif %}
+        </div>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

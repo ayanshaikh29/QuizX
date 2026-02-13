@@ -1,0 +1,1588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizX | Timer Studio</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #16a34a;
+            --primary-light: #f0fdf4;
+            --dark: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --bg-light: #f8fafc;
+            --warning: #f59e0b;
+            --warning-light: #fffbeb;
+            --info: #3b82f6;
+            --info-light: #eff6ff;
+            --success: #10b981;
+            --success-light: #d1fae5;
+            --danger: #ef4444;
+            --danger-light: #fef2f2;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--dark);
+        }
+
+        .studio-header {
+            background: white;
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left { 
+            display: flex; 
+            align-items: center; 
+            gap: 20px; 
+        }
+
+        .back-btn { 
+            width: 40px; 
+            height: 40px; 
+            border-radius: 12px; 
+            border: 1px solid var(--border); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            color: var(--dark); 
+            text-decoration: none; 
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: var(--bg-light);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .badge { 
+            font-size: 10px; 
+            text-transform: uppercase; 
+            font-weight: 800; 
+            color: var(--primary); 
+            letter-spacing: 1px; 
+        }
+
+        .studio-header h4 { 
+            margin: 5px 0 0 0; 
+            font-weight: 800; 
+            font-size: 18px;
+        }
+
+        .btn-lock { 
+            background: var(--danger-light); 
+            color: var(--danger); 
+            padding: 10px 20px; 
+            border-radius: 10px; 
+            font-weight: 700; 
+            text-decoration: none; 
+            font-size: 14px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-lock:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* Quiz Settings Bar */
+        .quiz-settings-bar {
+            background: white;
+            border-radius: 20px;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+
+        .settings-group {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+
+        .overall-timer-toggle {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--warning-light);
+            padding: 8px 20px;
+            border-radius: 100px;
+            border: 1px solid var(--warning);
+        }
+
+        .overall-timer {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: #f8fafc;
+            padding: 10px 20px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            transition: all 0.3s;
+        }
+
+        .overall-timer.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+            background: #f1f5f9;
+        }
+
+        .overall-timer i {
+            color: var(--info);
+            font-size: 1.2rem;
+        }
+
+        .timer-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .time-input-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .time-input-group input {
+            width: 55px;
+            padding: 8px 10px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-weight: 600;
+            outline: none;
+            text-align: center;
+        }
+
+        .time-input-group input:focus {
+            border-color: var(--info);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .timer-unit {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .timer-separator {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin: 0 2px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 52px;
+            height: 26px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e1;
+            transition: 0.3s;
+            border-radius: 34px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--primary);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+
+        .toggle-label {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .leaderboard-toggle {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--info-light);
+            padding: 8px 20px;
+            border-radius: 100px;
+            border: 1px solid var(--info);
+        }
+
+        .quiz-stats {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .stat-badge {
+            background: var(--bg-light);
+            padding: 8px 16px;
+            border-radius: 100px;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stat-badge i {
+            color: var(--primary);
+        }
+
+        .content-wrapper { 
+            max-width: 900px; 
+            margin: 40px auto; 
+            padding: 0 20px 120px; 
+        }
+
+        .question-block {
+            background: white;
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            position: relative;
+        }
+
+        .delete-question-btn {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            background: var(--danger-light);
+            color: var(--danger);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.3s;
+        }
+
+        .delete-question-btn:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        .block-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 25px;
+        }
+
+        .q-number {
+            font-size: 18px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .question-badges {
+            display: flex;
+            gap: 8px;
+        }
+
+        .question-badge {
+            background: var(--bg-light);
+            padding: 4px 12px;
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .question-badge i {
+            font-size: 0.9rem;
+        }
+
+        .leaderboard-show {
+            background: var(--info-light);
+            color: var(--info);
+        }
+
+        .leaderboard-show.off {
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+
+        .timer-show {
+            background: var(--warning-light);
+            color: var(--warning);
+        }
+
+        .timer-show.off {
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+
+        .leaderboard-toggle-question {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .leaderboard-toggle-question .toggle-switch {
+            width: 40px;
+            height: 20px;
+        }
+
+        .leaderboard-toggle-question .toggle-slider:before {
+            height: 16px;
+            width: 16px;
+            left: 2px;
+            bottom: 2px;
+        }
+
+        .leaderboard-toggle-question input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+        }
+
+        .points-section {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-light);
+            padding: 6px 12px;
+            border-radius: 100px;
+            border: 1px solid var(--border);
+        }
+
+        .points-input {
+            width: 50px;
+            border: none;
+            background: transparent;
+            font-weight: 700;
+            text-align: center;
+            color: var(--dark);
+            outline: none;
+        }
+
+        .points-input:focus {
+            border: none;
+        }
+
+        .points-section i {
+            color: var(--success);
+        }
+
+        .question-type-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .type-btn {
+            background: var(--bg-light);
+            border: 1px solid var(--border);
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .type-btn:hover {
+            border-color: var(--primary);
+            color: var(--dark);
+        }
+
+        .type-btn.active {
+            background: var(--primary-light);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .editor-wrapper {
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .toolbar {
+            background: #f8fafc;
+            padding: 10px 15px;
+            display: flex;
+            gap: 5px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .toolbar button {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 16px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .toolbar button:hover {
+            background: white;
+            color: var(--dark);
+        }
+
+        .toolbar button.active {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .editor {
+            min-height: 150px;
+            padding: 20px;
+            outline: none;
+            line-height: 1.6;
+            font-size: 16px;
+            color: var(--dark);
+            white-space: pre-wrap;
+        }
+
+        .editor:focus {
+            box-shadow: 0 0 0 3px rgba(22,163,74,0.1);
+        }
+
+        .editor img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .options-container {
+            margin-top: 25px;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .option-wrapper {
+            background: var(--bg-light);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 15px;
+        }
+
+        .option-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .radio-label, .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .radio-label input, .checkbox-label input {
+            accent-color: var(--success);
+            width: 16px;
+            height: 16px;
+        }
+
+        .add-image-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .add-image-btn:hover {
+            color: var(--info);
+        }
+
+        .option-input {
+            width: 100%;
+            min-height: 80px;
+            border: none;
+            background: transparent;
+            resize: vertical;
+            outline: none;
+            font-size: 14px;
+            color: var(--dark);
+        }
+
+        .option-input:focus {
+            outline: none;
+        }
+
+        .option-image-preview {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .short-answer-container, .paragraph-container {
+            max-width: 100%;
+        }
+
+        .correct-answer-input {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 14px;
+            min-height: 50px;
+            outline: none;
+        }
+
+        .paragraph-container .correct-answer-input {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .correct-answer-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(22,163,74,0.1);
+        }
+
+        .timer-input-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: var(--warning-light);
+            padding: 8px 16px;
+            border-radius: 100px;
+            border: 1px solid var(--warning);
+            margin-top: 20px;
+            width: fit-content;
+        }
+
+        .timer-input-group i {
+            color: var(--warning);
+        }
+
+        .timer-input-group input {
+            width: 60px;
+            border: none;
+            background: transparent;
+            text-align: center;
+            font-weight: 700;
+            color: var(--dark);
+            outline: none;
+        }
+
+        .timer-unit {
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .add-question-btn {
+            background: linear-gradient(145deg, var(--primary), #15803d);
+            color: white;
+            padding: 16px 32px;
+            border-radius: 16px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 40px auto 0;
+            box-shadow: 0 10px 20px -5px rgba(22,163,74,0.3);
+        }
+
+        .add-question-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 25px -5px rgba(22,163,74,0.4);
+        }
+
+        .save-quiz-btn {
+            background: linear-gradient(145deg, var(--info), #2563eb);
+            color: white;
+            padding: 16px 32px;
+            border-radius: 16px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            box-shadow: 0 10px 20px -5px rgba(59,130,246,0.3);
+        }
+
+        .save-quiz-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 25px -5px rgba(59,130,246,0.4);
+        }
+
+        .animate-slide-up {
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .add-option-wrapper {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .add-option-btn {
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 1px solid var(--primary);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .add-option-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .remove-option-btn {
+            background: var(--danger-light);
+            color: var(--danger);
+            padding: 5px 10px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .remove-option-btn:hover {
+            background: var(--danger);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+<div class="studio-container">
+    <header class="studio-header">
+        <div class="header-left">
+            <a href="{{ url_for('admin.quizzes') }}" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+            <div>
+                <span class="badge">⏱️ Timer Mode</span>
+                <h4>{{ quiz.title }}</h4>
+            </div>
+        </div>
+        <div class="header-right">
+            {% if not quiz.is_locked %}
+            <a href="{{ url_for('admin.end_questions', quiz_id=quiz.id) }}" onclick="return confirm('Lock this quiz? No more questions can be added after locking.')" class="btn-lock">
+                <i class="fas fa-lock"></i> Finalize Quiz
+            </a>
+            {% endif %}
+        </div>
+    </header>
+
+    <div class="content-wrapper">
+        <form method="POST" id="quizForm" enctype="multipart/form-data">
+            
+            <!-- ============= QUIZ SETTINGS ============= -->
+            <div class="quiz-settings-bar animate-slide-up">
+                <div class="settings-group">
+                    <!-- Global Leaderboard Toggle -->
+                    <div class="leaderboard-toggle">
+                        <div class="toggle-label">
+                            <i class="fas fa-trophy"></i> Show Leaderboard After Each Question
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" name="show_leaderboard_global" id="globalLeaderboardToggle" 
+                                   {% if quiz.show_leaderboard_global %}checked{% endif %}>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <!-- Overall Timer Toggle -->
+                    <div class="overall-timer-toggle">
+                        <div class="toggle-label">
+                            <i class="fas fa-hourglass-half"></i> Overall Quiz Timer
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="enableOverallTimer" 
+                                   name="enable_overall_timer" 
+                                   {% if quiz.overall_timer %}checked{% endif %}>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <!-- Overall Timer Input -->
+                    <div class="overall-timer {% if not quiz.overall_timer %}disabled{% endif %}" id="overallTimerInput">
+                        <i class="fas fa-clock"></i>
+                        <div class="timer-input-wrapper">
+                            <div class="time-input-group">
+                                <input type="number" id="overallTimerHours" 
+                                       name="overall_timer_hours" 
+                                       min="0" max="23" value="{{ (quiz.overall_timer // 60) if quiz.overall_timer else 0 }}" 
+                                       placeholder="00">
+                                <span class="timer-unit">hrs</span>
+                            </div>
+                            <span class="timer-separator">:</span>
+                            <div class="time-input-group">
+                                <input type="number" id="overallTimerMinutes" 
+                                       name="overall_timer_minutes" 
+                                       min="0" max="59" value="{{ (quiz.overall_timer % 60) if quiz.overall_timer else 30 }}" 
+                                       placeholder="30">
+                                <span class="timer-unit">min</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="quiz-stats">
+                    <!-- Leaderboard Status -->
+                    <div class="stat-badge">
+                        <i class="fas fa-trophy"></i>
+                        <span id="leaderboardStatus">Leaderboard: {% if quiz.show_leaderboard_global %}ON{% else %}OFF{% endif %}</span>
+                    </div>
+                    <!-- Overall Timer Status -->
+                    <div class="stat-badge" id="totalTimeBadge" style="{% if not quiz.overall_timer %}display: none;{% endif %}">
+                        <i class="fas fa-clock"></i>
+                        <span id="totalTimeStatus">Total Time: {{ quiz.overall_timer }} min</span>
+                    </div>
+                    <!-- Question Count -->
+                    <div class="stat-badge">
+                        <i class="fas fa-list-ol"></i>
+                        <span id="questionCount">0 Questions</span>
+                    </div>
+                </div>
+            </div>
+
+            <input type="hidden" name="overwrite" value="1">
+            <input type="hidden" name="overall_timer" id="overallTimerHidden">
+            
+            <div id="questions-container">
+                <!-- Question 1 Template -->
+                <div class="question-block animate-slide-up" id="question-0" data-question-index="0">
+                    <!-- Delete Button -->
+                    <button type="button" class="delete-question-btn" onclick="deleteQuestion(0)" style="display: none;">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+
+                    <div class="block-header">
+                        <div class="q-number">
+                            Question 1
+                            <span class="question-badges">
+                                <span class="question-badge leaderboard-show" id="leaderboard-badge-0">
+                                    <i class="fas fa-trophy"></i> Leaderboard ON
+                                </span>
+                                <span class="question-badge timer-show" id="timer-badge-0">
+                                    <i class="fas fa-clock"></i> Timer: 30 sec
+                                </span>
+                            </span>
+                        </div>
+                        <div style="display: flex; gap: 15px; align-items: center;">
+                            <!-- Per-Question Leaderboard Toggle -->
+                            <div class="leaderboard-toggle-question">
+                                <i class="fas fa-trophy" style="color: var(--info);"></i>
+                                <label class="toggle-switch" style="width: 40px; height: 20px;">
+                                    <input type="checkbox" name="show_leaderboard_0" id="leaderboard-toggle-0" class="leaderboard-checkbox" checked onchange="updateLeaderboardBadge('0', this.checked)">
+                                    <span class="toggle-slider" style="height: 20px;"></span>
+                                </label>
+                            </div>
+                            <div class="points-section">
+                                <i class="fas fa-star"></i>
+                                <input type="number" name="points_0" class="points-input" min="0" value="1" step="0.5" required>
+                                <span style="font-size: 13px; color: var(--text-muted);">points</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="question-type-selector">
+                        <button type="button" class="type-btn active" data-type="multiple-choice" onclick="changeQuestionType(this, 'multiple-choice')">
+                            <i class="fas fa-dot-circle"></i> Multiple Choice
+                        </button>
+                        <button type="button" class="type-btn" data-type="checkbox" onclick="changeQuestionType(this, 'checkbox')">
+                            <i class="fas fa-check-square"></i> Checkboxes
+                        </button>
+                        <button type="button" class="type-btn" data-type="short-answer" onclick="changeQuestionType(this, 'short-answer')">
+                            <i class="fas fa-text-height"></i> Short Answer
+                        </button>
+                        <button type="button" class="type-btn" data-type="paragraph" onclick="changeQuestionType(this, 'paragraph')">
+                            <i class="fas fa-paragraph"></i> Paragraph
+                        </button>
+                    </div>
+
+                    <div class="block-body">
+                        <label style="font-weight: 700; margin-bottom: 10px; display: block;">Question Prompt</label>
+                        <div class="editor-wrapper">
+                            <div class="toolbar">
+                                <button type="button" onclick="format('bold')"><i class="fas fa-bold"></i></button>
+                                <button type="button" onclick="format('italic')"><i class="fas fa-italic"></i></button>
+                                <button type="button" onclick="format('underline')"><i class="fas fa-underline"></i></button>
+                                <button type="button" onclick="format('insertUnorderedList')"><i class="fas fa-list-ul"></i></button>
+                                <button type="button" onclick="format('insertOrderedList')"><i class="fas fa-list-ol"></i></button>
+                                <button type="button" class="image-upload-btn" onclick="addInlineImage(this, '0')">
+                                    <i class="fas fa-image"></i> Add Image
+                                </button>
+                            </div>
+                            <div class="editor" contenteditable="true" oninput="syncQuestion(this, '0')"></div>
+                        </div>
+                        <input type="hidden" class="question-input" id="question-input-0" name="question_0" required>
+                        <input type="hidden" class="question-type-input" id="question-type-0" name="question_type_0" value="multiple-choice">
+
+                        <div class="options-container" id="options-container-0"></div>
+
+                        <!-- Per-Question Timer -->
+                        <div class="timer-input-group">
+                            <i class="fas fa-clock"></i>
+                            <input type="number" name="time_limit_0" id="time-limit-0" min="0" value="30" onchange="updateTimerBadge('0', this.value)">
+                            <span class="timer-unit">seconds</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" class="add-question-btn" onclick="addQuestion()">
+                <i class="fas fa-plus"></i> Add Question
+            </button>
+            
+            <button type="submit" class="save-quiz-btn">
+                <i class="fas fa-save"></i> Save Quiz
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+let qIndex = 1;
+
+// ============= FORMAT EDITOR =============
+function format(command) {
+    document.execCommand(command, false, null);
+}
+
+// ============= SYNC EDITOR TO HIDDEN INPUT =============
+function syncQuestion(editor, qId) {
+    const input = document.getElementById(`question-input-${qId}`);
+    if (input) input.value = editor.innerHTML;
+}
+
+// ============= CHANGE QUESTION TYPE =============
+function changeQuestionType(btn, type) {
+    const buttons = btn.closest('.question-type-selector').querySelectorAll('.type-btn');
+    buttons.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    
+    const block = btn.closest('.question-block');
+    const qId = block.getAttribute('data-question-index');
+    updateOptionsContainer(block, type, qId);
+}
+
+// ============= UPDATE OPTIONS CONTAINER =============
+function updateOptionsContainer(block, type, qId) {
+    const container = block.querySelector('.options-container');
+    const typeInput = block.querySelector('.question-type-input');
+    if (typeInput) typeInput.value = type;
+
+    if (type === 'multiple-choice') {
+        let html = `
+<div id="options-grid-${qId}" class="options-grid">
+    <div class="option-wrapper" data-opt-num="1">
+        <div class="option-header">
+            <label class="radio-label">
+                <input type="radio" name="answer_${qId}" value="1" checked>
+                <span>Correct</span>
+            </label>
+            <button type="button" class="add-image-btn" onclick="addOptionImage(this, '${qId}', 1)">
+                <i class="fas fa-image"></i> Image
+            </button>
+            <button type="button" class="remove-option-btn" style="display: none;" onclick="removeOption(this)">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+        <textarea name="option1_${qId}" class="option-input" placeholder="Option 1" required></textarea>
+        <input type="hidden" name="option_image_1_${qId}">
+    </div>
+    <div class="option-wrapper" data-opt-num="2">
+        <div class="option-header">
+            <label class="radio-label">
+                <input type="radio" name="answer_${qId}" value="2">
+                <span>Correct</span>
+            </label>
+            <button type="button" class="add-image-btn" onclick="addOptionImage(this, '${qId}', 2)">
+                <i class="fas fa-image"></i> Image
+            </button>
+            <button type="button" class="remove-option-btn" style="display: none;" onclick="removeOption(this)">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+        <textarea name="option2_${qId}" class="option-input" placeholder="Option 2" required></textarea>
+        <input type="hidden" name="option_image_2_${qId}">
+    </div>
+    <div class="option-wrapper" data-opt-num="3">
+        <div class="option-header">
+            <label class="radio-label">
+                <input type="radio" name="answer_${qId}" value="3">
+                <span>Correct</span>
+            </label>
+            <button type="button" class="add-image-btn" onclick="addOptionImage(this, '${qId}', 3)">
+                <i class="fas fa-image"></i> Image
+            </button>
+            <button type="button" class="remove-option-btn" onclick="removeOption(this)">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+        <textarea name="option3_${qId}" class="option-input" placeholder="Option 3" required></textarea>
+        <input type="hidden" name="option_image_3_${qId}">
+    </div>
+    <div class="option-wrapper" data-opt-num="4">
+        <div class="option-header">
+            <label class="radio-label">
+                <input type="radio" name="answer_${qId}" value="4">
+                <span>Correct</span>
+            </label>
+            <button type="button" class="add-image-btn" onclick="addOptionImage(this, '${qId}', 4)">
+                <i class="fas fa-image"></i> Image
+            </button>
+            <button type="button" class="remove-option-btn" onclick="removeOption(this)">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+        <textarea name="option4_${qId}" class="option-input" placeholder="Option 4" required></textarea>
+        <input type="hidden" name="option_image_4_${qId}">
+    </div>
+</div>
+<div class="add-option-wrapper">
+    <button type="button" class="add-option-btn" onclick="addOption('${qId}', 'multiple-choice')">
+        <i class="fas fa-plus"></i> Add Option
+    </button>
+</div>
+        `;
+        container.innerHTML = html;
+    } else if (type === 'checkbox') {
+        let html = `
+<div id="options-grid-${qId}" class="options-grid">
+    <div class="option-wrapper" data-opt-num="1">
+        <div class="option-header">
+            <label class="checkbox-label">
+                <input type="checkbox" name="correct_${qId}_1" value="on">
+                <span>Correct</span>
+            </label>
+            <button type="button" class="add-image-btn" onclick="addOptionImage(this, '${qId}', 1)">
+                <i class="fas fa-image"></i> Image
+            </button>
+            <button type="button" class="remove-option-btn" style="display: none;" onclick="removeOption(this)">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+        <textarea name="option1_${qId}" class="option-input" placeholder="Option 1" required></textarea>
+        <input type="hidden" name="option_image_1_${qId}">
+    </div>
+    <div class="option-wrapper" data-opt-num="2">
+        <div class="option-header">
+            <label class="checkbox-label">
+                <input type="checkbox" name="correct_${qId}_2" value="on">
+                <span>Correct</span>
+            </label>
+            <button type="button" class="add-image-btn" onclick="addOptionImage(this, '${qId}', 2)">
+                <i class="fas fa-image"></i> Image
+            </button>
+            <button type="button" class="remove-option-btn" style="display: none;" onclick="removeOption(this)">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+        <textarea name="option2_${qId}" class="option-input" placeholder="Option 2" required></textarea>
+        <input type="hidden" name="option_image_2_${qId}">
+    </div>
+    <div class="option-wrapper" data-opt-num="3">
+        <div class="option-header">
+            <label class="checkbox-label">
+                <input type="checkbox" name="correct_${qId}_3" value="on">
+                <span>Correct</span>
+            </label>
+            <button type="button" class="add-image-btn" onclick="addOptionImage(this, '${qId}', 3)">
+                <i class="fas fa-image"></i> Image
+            </button>
+            <button type="button" class="remove-option-btn" onclick="removeOption(this)">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+        <textarea name="option3_${qId}" class="option-input" placeholder="Option 3" required></textarea>
+        <input type="hidden" name="option_image_3_${qId}">
+    </div>
+    <div class="option-wrapper" data-opt-num="4">
+        <div class="option-header">
+            <label class="checkbox-label">
+                <input type="checkbox" name="correct_${qId}_4" value="on">
+                <span>Correct</span>
+            </label>
+            <button type="button" class="add-image-btn" onclick="addOptionImage(this, '${qId}', 4)">
+                <i class="fas fa-image"></i> Image
+            </button>
+            <button type="button" class="remove-option-btn" onclick="removeOption(this)">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+        <textarea name="option4_${qId}" class="option-input" placeholder="Option 4" required></textarea>
+        <input type="hidden" name="option_image_4_${qId}">
+    </div>
+</div>
+<div class="add-option-wrapper">
+    <button type="button" class="add-option-btn" onclick="addOption('${qId}', 'checkbox')">
+        <i class="fas fa-plus"></i> Add Option
+    </button>
+</div>
+        `;
+        container.innerHTML = html;
+    } else if (type === 'short-answer') {
+        container.innerHTML = `
+<div class="short-answer-container">
+    <label>Correct Answer</label>
+    <input type="text" id="correct_answer_${qId}" name="correct_answer_${qId}" class="correct-answer-input" placeholder="Enter the correct short answer..." required>
+</div>
+        `;
+    } else if (type === 'paragraph') {
+        container.innerHTML = `
+<div class="paragraph-container">
+    <label>Correct Answer</label>
+    <textarea id="correct_answer_${qId}" name="correct_answer_${qId}" class="correct-answer-input" placeholder="Enter the correct detailed answer..." required></textarea>
+</div>
+        `;
+    }
+}
+
+// Dynamic options functions
+function addOption(qId, qtype) {
+    const container = document.getElementById(`options-grid-${qId}`);
+    const currentCount = container.querySelectorAll('.option-wrapper').length;
+    if (currentCount >= 10) return; // Max 10 options
+    const optNum = currentCount + 1;
+    const isMultiple = qtype === 'multiple-choice';
+    const html = `
+        <div class="option-wrapper" data-opt-num="${optNum}">
+            <div class="option-header">
+                <label class="${isMultiple ? 'radio' : 'checkbox'}-label">
+                    <input type="${isMultiple ? 'radio' : 'checkbox'}" 
+                           name="${isMultiple ? `answer_${qId}` : `correct_${qId}_${optNum}`}" 
+                           value="${isMultiple ? optNum : 'on'}" >
+                    <span>Correct</span>
+                </label>
+                <button type="button" class="add-image-btn" onclick="addOptionImage(this, '${qId}', ${optNum})">
+                    <i class="fas fa-image"></i> Image
+                </button>
+                <button type="button" class="remove-option-btn" onclick="removeOption(this)">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+            <textarea name="option${optNum}_${qId}" class="option-input" placeholder="Option ${optNum}" required></textarea>
+            <input type="hidden" name="option_image_${optNum}_${qId}">
+        </div>
+    `;
+    container.insertAdjacentHTML('beforeend', html);
+}
+
+function removeOption(btn) {
+    const wrapper = btn.closest('.option-wrapper');
+    const container = wrapper.closest('.options-grid');
+    if (container.querySelectorAll('.option-wrapper').length <= 2) return; // Min 2 options
+    wrapper.remove();
+    // Renumber remaining options
+    const qId = container.id.match(/\d+/)[0];
+    const wrappers = container.querySelectorAll('.option-wrapper');
+    wrappers.forEach((w, idx) => {
+        const num = idx + 1;
+        w.dataset.optNum = num;
+        const textarea = w.querySelector('textarea');
+        textarea.name = `option${num}_${qId}`;
+        textarea.placeholder = `Option ${num}`;
+        const hidden = w.querySelector('input[type="hidden"]');
+        hidden.name = `option_image_${num}_${qId}`;
+        const input = w.querySelector('input[type="radio"], input[type="checkbox"]');
+        if (input.type === 'radio') {
+            input.value = num;
+        } else {
+            input.name = `correct_${qId}_${num}`;
+        }
+    });
+    // Hide remove buttons for first 2
+    wrappers.forEach((w, idx) => {
+        w.querySelector('.remove-option-btn').style.display = idx < 2 ? 'none' : 'inline-block';
+    });
+}
+
+// ============= ADD OPTION IMAGE =============
+function addOptionImage(btn, qId, optNum) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const hiddenInput = btn.closest('.option-wrapper').querySelector(`input[name="option_image_${optNum}_${qId}"]`);
+                if (hiddenInput) hiddenInput.value = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+    input.click();
+}
+
+// ============= ADD INLINE IMAGE =============
+function addInlineImage(btn, qId) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const editor = btn.closest('.editor-wrapper').querySelector('.editor');
+                if (editor) {
+                    editor.focus();
+                    document.execCommand('insertImage', false, e.target.result);
+                    syncQuestion(editor, qId);
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+    input.click();
+}
+
+// ============= UPDATE LEADERBOARD BADGE =============
+function updateLeaderboardBadge(qId, checked) {
+    const badge = document.getElementById(`leaderboard-badge-${qId}`);
+    if (badge) {
+        badge.textContent = `Leaderboard ${checked ? 'ON' : 'OFF'}`;
+        badge.classList.toggle('off', !checked);
+    }
+}
+
+// ============= UPDATE TIMER BADGE =============
+function updateTimerBadge(qId, value) {
+    const badge = document.getElementById(`timer-badge-${qId}`);
+    if (badge) {
+        const seconds = parseInt(value) || 0;
+        badge.textContent = `Timer: ${seconds} sec`;
+        badge.classList.toggle('off', seconds === 0);
+    }
+}
+
+// ============= UPDATE QUESTION COUNT =============
+function updateQuestionCount() {
+    const count = document.querySelectorAll('.question-block').length;
+    const badge = document.getElementById('questionCount');
+    if (badge) badge.textContent = `${count} Question${count === 1 ? '' : 's'}`;
+}
+
+// ============= UPDATE LEADERBOARD STATUS =============
+function updateLeaderboardStatus() {
+    const toggle = document.getElementById('globalLeaderboardToggle');
+    const status = document.getElementById('leaderboardStatus');
+    if (status) status.textContent = `Leaderboard: ${toggle.checked ? 'ON' : 'OFF'}`;
+}
+
+// ============= TOGGLE OVERALL TIMER =============
+function toggleOverallTimer() {
+    const checked = this.checked;
+    const inputDiv = document.getElementById('overallTimerInput');
+    const badge = document.getElementById('totalTimeBadge');
+    const hidden = document.getElementById('overallTimerHidden');
+    
+    inputDiv.classList.toggle('disabled', !checked);
+    if (badge) badge.style.display = checked ? 'flex' : 'none';
+    if (hidden) hidden.value = checked ? calculateTotalMinutes() : 0;
+    
+    updateOverallTimerBadge();
+}
+
+// ============= CALCULATE TOTAL MINUTES =============
+function calculateTotalMinutes() {
+    const hours = parseInt(document.getElementById('overallTimerHours').value) || 0;
+    const minutes = parseInt(document.getElementById('overallTimerMinutes').value) || 0;
+    return (hours * 60) + minutes;
+}
+
+// ============= UPDATE OVERALL TIMER BADGE =============
+function updateOverallTimerBadge() {
+    const total = calculateTotalMinutes();
+    const badge = document.getElementById('totalTimeStatus');
+    if (badge) badge.textContent = `Total Time: ${total} min`;
+    const hidden = document.getElementById('overallTimerHidden');
+    if (hidden) hidden.value = total;
+}
+
+// ============= VALIDATE TIMER INPUTS =============
+function validateTimerInputs() {
+    let value = parseInt(this.value) || 0;
+    const max = this.max ? parseInt(this.max) : Infinity;
+    const min = this.min ? parseInt(this.min) : 0;
+    this.value = Math.max(min, Math.min(max, value));
+    updateOverallTimerBadge();
+}
+
+// ============= DELETE QUESTION =============
+function deleteQuestion(qId) {
+    if (confirm('Delete this question? This cannot be undone.')) {
+        const block = document.getElementById(`question-${qId}`);
+        if (block) block.remove();
+        updateQuestionCount();
+    }
+}
+
+// ============= ADD NEW QUESTION =============
+function addQuestion() {
+    const container = document.getElementById("questions-container");
+    const template = document.getElementById("question-0").cloneNode(true);
+    
+    template.id = `question-${qIndex}`;
+    template.setAttribute('data-question-index', qIndex);
+    template.classList.add('animate-slide-up');
+    
+    const deleteBtn = template.querySelector('.delete-question-btn');
+    if (deleteBtn) {
+        deleteBtn.style.display = 'flex';
+        deleteBtn.onclick = function() { deleteQuestion(qIndex); };
+    }
+    
+    const qNumber = template.querySelector(".q-number");
+    if (qNumber) {
+        const qNumberText = qNumber.childNodes[0];
+        if (qNumberText) {
+            qNumberText.nodeValue = `Question ${qIndex + 1} `;
+        }
+    }
+    
+    const leaderboardBadge = template.querySelector('[id^="leaderboard-badge-"]');
+    if (leaderboardBadge) {
+        leaderboardBadge.id = `leaderboard-badge-${qIndex}`;
+    }
+    
+    const timerBadge = template.querySelector('[id^="timer-badge-"]');
+    if (timerBadge) {
+        timerBadge.id = `timer-badge-${qIndex}`;
+    }
+    
+    const leaderboardToggle = template.querySelector('.leaderboard-toggle-question input[type="checkbox"]');
+    if (leaderboardToggle) {
+        leaderboardToggle.id = `leaderboard-toggle-${qIndex}`;
+        leaderboardToggle.name = `show_leaderboard_${qIndex}`;
+        leaderboardToggle.className = 'leaderboard-checkbox';
+        leaderboardToggle.checked = document.getElementById('globalLeaderboardToggle').checked;
+        leaderboardToggle.setAttribute('onchange', `updateLeaderboardBadge('${qIndex}', this.checked)`);
+    }
+    
+    const pointsInput = template.querySelector('input[name^="points_"]');
+    if (pointsInput) {
+        pointsInput.name = `points_${qIndex}`;
+        pointsInput.value = "1";
+    }
+    
+    const timeLimit = template.querySelector('input[name^="time_limit_"]');
+    if (timeLimit) {
+        timeLimit.name = `time_limit_${qIndex}`;
+        timeLimit.id = `time-limit-${qIndex}`;
+        timeLimit.value = "30";
+        timeLimit.setAttribute('onchange', `updateTimerBadge('${qIndex}', this.value)`);
+    }
+    
+    const questionInput = template.querySelector('.question-input');
+    if (questionInput) {
+        questionInput.id = `question-input-${qIndex}`;
+        questionInput.name = `question_${qIndex}`;
+        questionInput.value = "";
+    }
+    
+    const typeInput = template.querySelector('.question-type-input');
+    if (typeInput) {
+        typeInput.id = `question-type-${qIndex}`;
+        typeInput.name = `question_type_${qIndex}`;
+        typeInput.value = "multiple-choice";
+    }
+    
+    const editor = template.querySelector(".editor");
+    if (editor) {
+        editor.innerHTML = "";
+        editor.setAttribute('oninput', `syncQuestion(this, '${qIndex}')`);
+    }
+    
+    const typeBtns = template.querySelectorAll('.type-btn');
+    const types = ['multiple-choice', 'checkbox', 'short-answer', 'paragraph'];
+    typeBtns.forEach((btn, idx) => {
+        btn.classList.toggle('active', idx === 0);
+        btn.setAttribute('onclick', `changeQuestionType(this, '${types[idx]}')`);
+    });
+    
+    const optionsContainer = template.querySelector('.options-container');
+    if (optionsContainer) {
+        optionsContainer.id = `options-container-${qIndex}`;
+    }
+    
+    container.appendChild(template);
+    updateOptionsContainer(template, 'multiple-choice', qIndex);
+    
+    updateLeaderboardBadge(qIndex.toString(), document.getElementById('globalLeaderboardToggle').checked);
+    updateTimerBadge(qIndex.toString(), 30);
+    
+    qIndex++;
+    updateQuestionCount();
+    
+    template.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// ============= INITIALIZATION =============
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize first question
+    const firstQuestion = document.getElementById('question-0');
+    if (firstQuestion) {
+        updateOptionsContainer(firstQuestion, 'multiple-choice', '0');
+        
+        // Setup editor sync
+        const firstEditor = firstQuestion.querySelector('.editor');
+        if (firstEditor) {
+            firstEditor.setAttribute('oninput', 'syncQuestion(this, "0")');
+        }
+        
+        // Setup type buttons
+        const typeBtns = firstQuestion.querySelectorAll('.type-btn');
+        typeBtns.forEach(btn => {
+            btn.onclick = function() {
+                changeQuestionType(this, this.getAttribute('data-type'));
+            };
+        });
+        
+        // Setup image upload
+        const imageBtn = firstQuestion.querySelector('.image-upload-btn');
+        if (imageBtn) {
+            imageBtn.onclick = function() {
+                addInlineImage(this, '0');
+            };
+        }
+    }
+    
+    // Setup global leaderboard toggle
+    const globalToggle = document.getElementById('globalLeaderboardToggle');
+    if (globalToggle) {
+        globalToggle.addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.leaderboard-checkbox');
+            checkboxes.forEach((checkbox, index) => {
+                checkbox.checked = this.checked;
+                updateLeaderboardBadge(index.toString(), this.checked);
+            });
+            updateLeaderboardStatus();
+        });
+        updateLeaderboardStatus();
+    }
+    
+    // Setup overall timer toggle
+    const enableOverallTimer = document.getElementById('enableOverallTimer');
+    if (enableOverallTimer) {
+        enableOverallTimer.addEventListener('change', toggleOverallTimer);
+    }
+    
+    // Setup overall timer inputs
+    const hoursInput = document.getElementById('overallTimerHours');
+    const minutesInput = document.getElementById('overallTimerMinutes');
+    
+    if (hoursInput) {
+        hoursInput.addEventListener('input', validateTimerInputs);
+        hoursInput.addEventListener('blur', validateTimerInputs);
+    }
+    
+    if (minutesInput) {
+        minutesInput.addEventListener('input', validateTimerInputs);
+        minutesInput.addEventListener('blur', validateTimerInputs);
+    }
+    
+    // Initialize question count
+    updateQuestionCount();
+    
+    // Initialize badges for first question
+    updateLeaderboardBadge('0', document.getElementById('leaderboard-toggle-0')?.checked || true);
+    updateTimerBadge('0', document.getElementById('time-limit-0').value);
+    
+    // Initialize overall timer
+    toggleOverallTimer.call(document.getElementById('enableOverallTimer'));
+});
+
+// ============= FORM SUBMISSION =============
+document.getElementById('quizForm').onsubmit = function(e) {
+    // Sync all editors
+    document.querySelectorAll('.editor').forEach(editor => {
+        const qId = editor.closest('.question-block').getAttribute('data-question-index');
+        syncQuestion(editor, qId);
+    });
+    
+    // Handle overall timer - ONLY send if enabled
+    const enableOverallTimer = document.getElementById('enableOverallTimer');
+    if (enableOverallTimer && enableOverallTimer.checked) {
+        const hours = parseInt(document.getElementById('overallTimerHours').value) || 0;
+        const minutes = parseInt(document.getElementById('overallTimerMinutes').value) || 0;
+        
+        if (hours === 0 && minutes === 0) {
+            alert('Please set an overall quiz timer greater than 0, or disable the timer.');
+            e.preventDefault();
+            return false;
+        }
+        
+        // Convert hours+minutes to total minutes for backend
+        const totalMinutes = (hours * 60) + minutes;
+        const hiddenTimerInput = document.createElement('input');
+        hiddenTimerInput.type = 'hidden';
+        hiddenTimerInput.name = 'overall_timer';
+        hiddenTimerInput.value = totalMinutes;
+        this.appendChild(hiddenTimerInput);
+    } else {
+        // If timer is disabled, explicitly send 0 or don't send the field at all
+        // This prevents backend from saving a default value
+        const hiddenTimerInput = document.createElement('input');
+        hiddenTimerInput.type = 'hidden';
+        hiddenTimerInput.name = 'overall_timer';
+        hiddenTimerInput.value = 0;  // 0 means timer is disabled
+        this.appendChild(hiddenTimerInput);
+    }
+    
+    // Validate each question
+    const questionBlocks = document.querySelectorAll('.question-block');
+    for (let i = 0; i < questionBlocks.length; i++) {
+        const block = questionBlocks[i];
+        const qId = block.getAttribute('data-question-index');
+        const questionInput = block.querySelector('.question-input');
+        const typeInput = block.querySelector('.question-type-input');
+        
+        if (!questionInput || !questionInput.value.trim()) {
+            alert(`Please enter text for Question ${i + 1}`);
+            e.preventDefault();
+            return false;
+        }
+        
+        const questionType = typeInput ? typeInput.value : 'multiple-choice';
+        
+        if (questionType === 'multiple-choice' || questionType === 'checkbox') {
+            const optionsGrid = document.getElementById(`options-grid-${qId}`);
+            
+            if (optionsGrid) {
+                const options = optionsGrid.querySelectorAll('.option-input');
+                let hasEmptyOption = false;
+                
+                options.forEach(opt => {
+                    if (!opt.value.trim()) {
+                        hasEmptyOption = true;
+                    }
+                });
+                
+                if (hasEmptyOption) {
+                    alert(`Please fill in all options for Question ${i + 1}`);
+                    e.preventDefault();
+                    return false;
+                }
+                
+                const selectedAnswers = optionsGrid.querySelectorAll('input[type="radio"]:checked, input[type="checkbox"]:checked');
+                if (selectedAnswers.length === 0) {
+                    alert(`Please select at least one correct answer for Question ${i + 1}`);
+                    e.preventDefault();
+                    return false;
+                }
+            }
+        } else {
+            // Validate text answer questions
+            const correctAnswer = document.getElementById(`correct_answer_${qId}`);
+            if (!correctAnswer || !correctAnswer.value.trim()) {
+                alert(`Please enter the correct answer for Question ${i + 1}`);
+                e.preventDefault();
+                return false;
+            }
+        }
+    }
+    
+    return true;
+};
+</script>
+</body>
+</html>

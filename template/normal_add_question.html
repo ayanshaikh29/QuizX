@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizX | Standard Studio</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Copy ALL styles from add_question.html EXCEPT timer-related styles */
+        :root {
+            --primary: #16a34a;
+            --primary-light: #f0fdf4;
+            --dark: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --bg-light: #f8fafc;
+            --warning: #f59e0b;
+            --warning-light: #fffbeb;
+            --info: #3b82f6;
+            --info-light: #eff6ff;
+            --success: #10b981;
+            --success-light: #d1fae5;
+            --danger: #ef4444;
+            --danger-light: #fef2f2;
+        }
+        /* ... rest of your CSS (same as add_question.html but WITHOUT timer styles) ... */
+        
+        /* Hide ALL timer-related elements */
+        .timer-input-group, .overall-timer, .overall-timer-toggle, #totalTimeBadge {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+<div class="studio-container">
+    <header class="studio-header">
+        <div class="header-left">
+            <a href="{{ url_for('admin.quizzes') }}" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+            <div>
+                <span class="badge">📝 Standard Mode</span>
+                <h4>{{ quiz.title }}</h4>
+            </div>
+        </div>
+        <div class="header-right">
+            {% if not quiz.is_locked %}
+            <a href="{{ url_for('admin.end_questions', quiz_id=quiz.id) }}" onclick="return confirm('Lock this quiz? No more questions can be added after locking.')" class="btn-lock">
+                <i class="fas fa-lock"></i> Finalize Quiz
+            </a>
+            {% endif %}
+        </div>
+    </header>
+
+    <div class="content-wrapper">
+        <form method="POST" id="quizForm" enctype="multipart/form-data">
+            
+            <!-- ============= QUIZ SETTINGS ============= -->
+            <div class="quiz-settings-bar animate-slide-up">
+                <div class="settings-group">
+                    <!-- Global Leaderboard Toggle - FIXED: No default value -->
+                    <div class="leaderboard-toggle">
+                        <div class="toggle-label">
+                            <i class="fas fa-trophy"></i> Show Leaderboard After Each Question
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" name="show_leaderboard_global" id="globalLeaderboardToggle" 
+                                   {% if quiz.show_leaderboard_global %}checked{% endif %}>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="quiz-stats">
+                    <!-- Leaderboard Status - FIXED: No default value -->
+                    <div class="stat-badge">
+                        <i class="fas fa-trophy"></i>
+                        <span id="leaderboardStatus">Leaderboard: {% if quiz.show_leaderboard_global %}ON{% else %}OFF{% endif %}</span>
+                    </div>
+                    <div class="stat-badge">
+                        <i class="fas fa-list-ol"></i>
+                        <span id="questionCount">0 Questions</span>
+                    </div>
+                </div>
+            </div>
+
+            <input type="hidden" name="overwrite" value="1">
+            
+            <div id="questions-container">
+                <!-- Question 1 Template -->
+                <div class="question-block animate-slide-up" id="question-0" data-question-index="0">
+                    <!-- Delete Button -->
+                    <button type="button" class="delete-question-btn" onclick="deleteQuestion(0)" style="display: none;">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+
+                    <div class="block-header">
+                        <div class="q-number">
+                            Question 1
+                            <span class="question-badges">
+                                <span class="question-badge leaderboard-show" id="leaderboard-badge-0">
+                                    <i class="fas fa-trophy"></i> Leaderboard ON
+                                </span>
+                            </span>
+                        </div>
+                        <div style="display: flex; gap: 15px; align-items: center;">
+                            <!-- Per-Question Leaderboard Toggle -->
+                            <div class="leaderboard-toggle-question">
+                                <i class="fas fa-trophy" style="color: var(--info);"></i>
+                                <label class="toggle-switch" style="width: 40px; height: 20px;">
+                                    <input type="checkbox" name="show_leaderboard_0" id="leaderboard-toggle-0" class="leaderboard-checkbox" checked onchange="updateLeaderboardBadge('0', this.checked)">
+                                    <span class="toggle-slider" style="height: 20px;"></span>
+                                </label>
+                            </div>
+                            <div class="points-section">
+                                <i class="fas fa-star"></i>
+                                <input type="number" name="points_0" class="points-input" min="0" value="1" step="0.5" required>
+                                <span style="font-size: 13px; color: var(--text-muted);">points</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="question-type-selector">
+                        <button type="button" class="type-btn active" data-type="multiple-choice">
+                            <i class="fas fa-dot-circle"></i> Multiple Choice
+                        </button>
+                        <button type="button" class="type-btn" data-type="checkbox">
+                            <i class="fas fa-check-square"></i> Checkboxes
+                        </button>
+                        <button type="button" class="type-btn" data-type="short-answer">
+                            <i class="fas fa-text-height"></i> Short Answer
+                        </button>
+                        <button type="button" class="type-btn" data-type="paragraph">
+                            <i class="fas fa-paragraph"></i> Paragraph
+                        </button>
+                    </div>
+
+                    <div class="block-body">
+                        <label style="font-weight: 700; margin-bottom: 10px; display: block;">Question Prompt</label>
+                        <div class="editor-wrapper">
+                            <div class="toolbar">
+                                <button type="button" onclick="format('bold')"><i class="fas fa-bold"></i></button>
+                                <button type="button" onclick="format('italic')"><i class="fas fa-italic"></i></button>
+                                <button type="button" onclick="format('underline')"><i class="fas fa-underline"></i></button>
+                                <button type="button" onclick="format('insertUnorderedList')"><i class="fas fa-list-ul"></i></button>
+                                <button type="button" onclick="format('insertOrderedList')"><i class="fas fa-list-ol"></i></button>
+                                <button type="button" class="image-upload-btn" onclick="addInlineImage(this, '0')">
+                                    <i class="fas fa-image"></i> Add Image
+                                </button>
+                            </div>
+                            <div class="editor" contenteditable="true" oninput="syncQuestion(this, '0')" data-placeholder="Type your question here..."></div>
+                            <input type="hidden" name="question[]" class="question-input" id="question-input-0">
+                            <input type="hidden" name="question_type[]" class="question-type-input" id="question-type-0" value="multiple-choice">
+                        </div>
+
+                        <!-- Options Container - Dynamic based on question type -->
+                        <div class="options-container" id="options-container-0"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" onclick="addQuestion()" class="btn-add"><i class="fas fa-plus"></i> Add Question</button>
+                <button type="submit" class="btn-save"><i class="fas fa-cloud-upload-alt"></i> Save Questions</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+let qIndex = {{ questions|length|default(1) }};
+if (qIndex < 1) qIndex = 1;
+
+// ============= EDITOR FUNCTIONS =============
+function format(cmd) {
+    document.execCommand(cmd, false, null);
+}
+
+function syncQuestion(div, qId) {
+    const hiddenInput = document.getElementById(`question-input-${qId}`);
+    if (hiddenInput) {
+        hiddenInput.value = div.innerHTML;
+    }
+}
+
+// ============= LEADERBOARD FUNCTIONS =============
+function updateLeaderboardBadge(qId, isChecked) {
+    const badge = document.getElementById(`leaderboard-badge-${qId}`);
+    if (badge) {
+        badge.className = `question-badge ${isChecked ? 'leaderboard-show' : 'leaderboard-hide'}`;
+        badge.innerHTML = `<i class="fas fa-trophy"></i> Leaderboard ${isChecked ? 'ON' : 'OFF'}`;
+    }
+}
+
+function updateLeaderboardStatus() {
+    const globalToggle = document.getElementById('globalLeaderboardToggle');
+    const leaderboardStatus = document.getElementById('leaderboardStatus');
+    if (globalToggle && leaderboardStatus) {
+        leaderboardStatus.innerHTML = `<i class="fas fa-trophy"></i> Leaderboard: ${globalToggle.checked ? 'ON' : 'OFF'}`;
+    }
+}
+
+// ============= QUESTION COUNT =============
+function updateQuestionCount() {
+    const questionBlocks = document.querySelectorAll('.question-block');
+    const questionCount = document.getElementById('questionCount');
+    const count = questionBlocks.length;
+    
+    if (questionCount) {
+        questionCount.innerText = `${count} Question${count !== 1 ? 's' : ''}`;
+    }
+    
+    // Show/hide delete buttons
+    questionBlocks.forEach((block, index) => {
+        const deleteBtn = block.querySelector('.delete-question-btn');
+        if (deleteBtn) {
+            deleteBtn.style.display = count > 1 ? 'flex' : 'none';
+        }
+    });
+}
+
+// ============= DELETE QUESTION =============
+function deleteQuestion(qId) {
+    const questionBlocks = document.querySelectorAll('.question-block');
+    
+    if (questionBlocks.length <= 1) {
+        alert('You must have at least one question.');
+        return;
+    }
+    
+    if (confirm('Are you sure you want to delete this question?')) {
+        const questionBlock = document.getElementById(`question-${qId}`);
+        if (questionBlock) {
+            questionBlock.remove();
+            renumberAllQuestions();
+            updateQuestionCount();
+        }
+    }
+}
+
+function renumberAllQuestions() {
+    const questionBlocks = document.querySelectorAll('.question-block');
+    
+    questionBlocks.forEach((block, index) => {
+        block.id = `question-${index}`;
+        block.setAttribute('data-question-index', index);
+        
+        const qNumber = block.querySelector('.q-number');
+        if (qNumber) {
+            const qNumberText = qNumber.childNodes[0];
+            if (qNumberText) {
+                qNumberText.nodeValue = `Question ${index + 1} `;
+            }
+        }
+        
+        const deleteBtn = block.querySelector('.delete-question-btn');
+        if (deleteBtn) {
+            deleteBtn.onclick = function() { deleteQuestion(index); };
+        }
+        
+        const leaderboardBadge = block.querySelector('[id^="leaderboard-badge-"]');
+        if (leaderboardBadge) {
+            leaderboardBadge.id = `leaderboard-badge-${index}`;
+        }
+        
+        const leaderboardToggle = block.querySelector('.leaderboard-toggle-question input[type="checkbox"]');
+        if (leaderboardToggle) {
+            leaderboardToggle.id = `leaderboard-toggle-${index}`;
+            leaderboardToggle.name = `show_leaderboard_${index}`;
+            leaderboardToggle.setAttribute('onchange', `updateLeaderboardBadge('${index}', this.checked)`);
+        }
+        
+        const pointsInput = block.querySelector('input[name^="points_"]');
+        if (pointsInput) {
+            pointsInput.name = `points_${index}`;
+        }
+        
+        const questionInput = block.querySelector('.question-input');
+        if (questionInput) {
+            questionInput.id = `question-input-${index}`;
+        }
+        
+        const typeInput = block.querySelector('.question-type-input');
+        if (typeInput) {
+            typeInput.id = `question-type-${index}`;
+        }
+        
+        const editor = block.querySelector('.editor');
+        if (editor) {
+            editor.setAttribute('oninput', `syncQuestion(this, '${index}')`);
+        }
+        
+        const optionsContainer = block.querySelector('.options-container');
+        if (optionsContainer) {
+            optionsContainer.id = `options-container-${index}`;
+            
+            const optionsGrid = block.querySelector('[id^="options-grid-"]');
+            if (optionsGrid) {
+                optionsGrid.id = `options-grid-${index}`;
+                renumberOptions(index);
+            }
+        }
+    });
+}
+
+// ============= QUESTION TYPE FUNCTIONS =============
+function changeQuestionType(btn, type) {
+    const selector = btn.closest('.question-type-selector');
+    selector.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    
+    const questionBlock = btn.closest('.question-block');
+    const qId = questionBlock.getAttribute('data-question-index') || questionBlock.id.split('-')[1];
+    
+    const typeInput = questionBlock.querySelector('.question-type-input');
+    if (typeInput) {
+        typeInput.value = type;
+    }
+    
+    updateOptionsContainer(questionBlock, type, qId);
+}
+
+function updateOptionsContainer(questionBlock, type, qId) {
+    const container = questionBlock.querySelector('.options-container');
+    if (!container) return;
+    
+    if (type === 'multiple-choice' || type === 'checkbox') {
+        const selectionIcon = type === 'multiple-choice' ? 'dot-circle' : 'check-square';
+        
+        let html = `
+            <div class="options-header">
+                <label><i class="fas fa-${selectionIcon}"></i> Answer Options</label>
+                <button type="button" class="add-option-btn" onclick="addOption('${type}', '${qId}')">
+                    <i class="fas fa-plus"></i> Add Option
+                </button>
+            </div>
+            <div class="options-grid" id="options-grid-${qId}">
+        `;
+        
+        for (let i = 1; i <= 2; i++) {
+            html += createOptionHTML(type, qId, i);
+        }
+        
+        html += `</div>`;
+        container.innerHTML = html;
+    } else {
+        const isParagraph = type === 'paragraph';
+        container.innerHTML = `
+            <div class="options-header">
+                <label><i class="fas fa-${isParagraph ? 'paragraph' : 'text-height'}"></i> Answer</label>
+            </div>
+            <div class="text-answer-area">
+                <div class="text-answer-preview">
+                    <i class="fas fa-info-circle"></i> 
+                    ${isParagraph ? 'Students will type a paragraph answer' : 'Students will type a short answer'}
+                </div>
+                <div class="correct-answer-input">
+                    <label><i class="fas fa-check-circle"></i> Correct Answer</label>
+                    <input type="text" name="correct_answer_${qId}" id="correct_answer_${qId}" placeholder="Enter the correct answer" required>
+                </div>
+            </div>
+        `;
+    }
+}
+
+function createOptionHTML(type, qId, index) {
+    const isRadio = type === 'multiple-choice';
+    const selectionType = isRadio ? 'radio' : 'checkbox';
+    const markClass = isRadio ? '' : 'checkbox-mark';
+    const name = isRadio ? `answer_${qId}` : `correct_${qId}_${index}`;
+    
+    return `
+        <div class="option-row" id="option-${qId}-${index}">
+            <div class="selection-wrapper">
+                <input type="${selectionType}" name="${name}" value="${index}" id="q${qId}_opt${index}">
+                <label for="q${qId}_opt${index}" class="check-mark ${markClass}"><i class="fas fa-check"></i></label>
+            </div>
+            <input type="text" class="option-input" name="option${index}_${qId}" id="option${index}_${qId}" placeholder="Option ${index}..." required>
+            <button type="button" class="option-image-upload" onclick="uploadOptionImage(this, '${qId}', ${index})">
+                <i class="fas fa-image"></i>
+            </button>
+            <button type="button" class="remove-option" onclick="removeOption(this, '${qId}', ${index})" ${index <= 2 ? 'style="opacity: 0.3; pointer-events: none;"' : ''}>
+                <i class="fas fa-times"></i>
+            </button>
+            <input type="hidden" name="option_image_${index}_${qId}" class="option-image-input" id="option-image-${qId}-${index}">
+        </div>
+    `;
+}
+
+function addOption(type, qId) {
+    const grid = document.getElementById(`options-grid-${qId}`);
+    if (!grid) return;
+    
+    const optionCount = grid.children.length + 1;
+    const optionHTML = createOptionHTML(type, qId, optionCount);
+    grid.insertAdjacentHTML('beforeend', optionHTML);
+    
+    const newOption = grid.lastElementChild;
+    const removeBtn = newOption.querySelector('.remove-option');
+    if (removeBtn) {
+        removeBtn.style.opacity = '0.6';
+        removeBtn.style.pointerEvents = 'auto';
+    }
+}
+
+function removeOption(btn, qId, index) {
+    const option = btn.closest('.option-row');
+    const grid = document.getElementById(`options-grid-${qId}`);
+    
+    if (grid && grid.children.length <= 2) {
+        alert('You must have at least 2 options.');
+        return;
+    }
+    
+    option.remove();
+    renumberOptions(qId);
+}
+
+function renumberOptions(qId) {
+    const grid = document.getElementById(`options-grid-${qId}`);
+    if (!grid) return;
+    
+    const questionBlock = document.getElementById(`question-${qId}`);
+    if (!questionBlock) return;
+    
+    const typeInput = questionBlock.querySelector('.question-type-input');
+    const questionType = typeInput ? typeInput.value : 'multiple-choice';
+    const isRadio = questionType === 'multiple-choice';
+    
+    Array.from(grid.children).forEach((opt, idx) => {
+        const newIndex = idx + 1;
+        const radio = opt.querySelector('input[type="radio"], input[type="checkbox"]');
+        const textInput = opt.querySelector('.option-input');
+        const imageInput = opt.querySelector('.option-image-input');
+        const label = opt.querySelector('label');
+        const removeBtn = opt.querySelector('.remove-option');
+        
+        if (radio) {
+            radio.value = newIndex;
+            radio.id = `q${qId}_opt${newIndex}`;
+            radio.name = isRadio ? `answer_${qId}` : `correct_${qId}_${newIndex}`;
+        }
+        if (label) {
+            label.htmlFor = `q${qId}_opt${newIndex}`;
+        }
+        if (textInput) {
+            textInput.name = `option${newIndex}_${qId}`;
+            textInput.id = `option${newIndex}_${qId}`;
+            textInput.placeholder = `Option ${newIndex}...`;
+        }
+        if (imageInput) {
+            imageInput.name = `option_image_${newIndex}_${qId}`;
+            imageInput.id = `option-image-${qId}-${newIndex}`;
+        }
+        
+        if (removeBtn) {
+            if (newIndex <= 2) {
+                removeBtn.style.opacity = '0.3';
+                removeBtn.style.pointerEvents = 'none';
+            } else {
+                removeBtn.style.opacity = '0.6';
+                removeBtn.style.pointerEvents = 'auto';
+            }
+        }
+        
+        opt.id = `option-${qId}-${newIndex}`;
+    });
+}
+
+// ============= IMAGE UPLOAD FUNCTIONS =============
+function uploadOptionImage(btn, qId, index) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imageInput = document.getElementById(`option-image-${qId}-${index}`);
+                if (imageInput) {
+                    imageInput.value = e.target.result;
+                }
+                
+                const optionRow = btn.closest('.option-row');
+                let preview = optionRow.querySelector('.option-image-preview');
+                
+                if (!preview) {
+                    preview = document.createElement('img');
+                    preview.className = 'option-image-preview';
+                    preview.onclick = () => uploadOptionImage(btn, qId, index);
+                    btn.parentNode.insertBefore(preview, btn);
+                }
+                
+                preview.src = e.target.result;
+                preview.alt = 'Option image';
+                btn.innerHTML = '<i class="fas fa-edit"></i>';
+                btn.title = 'Change image';
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+    input.click();
+}
+
+function addInlineImage(btn, qId) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const editor = btn.closest('.editor-wrapper').querySelector('.editor');
+                if (editor) {
+                    editor.focus();
+                    document.execCommand('insertImage', false, e.target.result);
+                    syncQuestion(editor, qId);
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+    input.click();
+}
+
+// ============= ADD NEW QUESTION =============
+function addQuestion() {
+    const container = document.getElementById("questions-container");
+    const template = document.getElementById("question-0").cloneNode(true);
+    
+    template.id = `question-${qIndex}`;
+    template.setAttribute('data-question-index', qIndex);
+    template.classList.add('animate-slide-up');
+    
+    const deleteBtn = template.querySelector('.delete-question-btn');
+    if (deleteBtn) {
+        deleteBtn.style.display = 'flex';
+        deleteBtn.onclick = function() { deleteQuestion(qIndex); };
+    }
+    
+    const qNumber = template.querySelector(".q-number");
+    if (qNumber) {
+        const qNumberText = qNumber.childNodes[0];
+        if (qNumberText) {
+            qNumberText.nodeValue = `Question ${qIndex + 1} `;
+        }
+    }
+    
+    const leaderboardBadge = template.querySelector('[id^="leaderboard-badge-"]');
+    if (leaderboardBadge) {
+        leaderboardBadge.id = `leaderboard-badge-${qIndex}`;
+    }
+    
+    const leaderboardToggle = template.querySelector('.leaderboard-toggle-question input[type="checkbox"]');
+    if (leaderboardToggle) {
+        leaderboardToggle.id = `leaderboard-toggle-${qIndex}`;
+        leaderboardToggle.name = `show_leaderboard_${qIndex}`;
+        leaderboardToggle.className = 'leaderboard-checkbox';
+        leaderboardToggle.checked = document.getElementById('globalLeaderboardToggle').checked;
+        leaderboardToggle.setAttribute('onchange', `updateLeaderboardBadge('${qIndex}', this.checked)`);
+    }
+    
+    const pointsInput = template.querySelector('input[name^="points_"]');
+    if (pointsInput) {
+        pointsInput.name = `points_${qIndex}`;
+        pointsInput.value = "1";
+    }
+    
+    const questionInput = template.querySelector('.question-input');
+    if (questionInput) {
+        questionInput.id = `question-input-${qIndex}`;
+        questionInput.value = "";
+    }
+    
+    const typeInput = template.querySelector('.question-type-input');
+    if (typeInput) {
+        typeInput.id = `question-type-${qIndex}`;
+        typeInput.value = "multiple-choice";
+    }
+    
+    const editor = template.querySelector(".editor");
+    if (editor) {
+        editor.innerHTML = "";
+        editor.setAttribute('oninput', `syncQuestion(this, '${qIndex}')`);
+    }
+    
+    const typeBtns = template.querySelectorAll('.type-btn');
+    const types = ['multiple-choice', 'checkbox', 'short-answer', 'paragraph'];
+    typeBtns.forEach((btn, idx) => {
+        btn.classList.toggle('active', idx === 0);
+        btn.setAttribute('onclick', `changeQuestionType(this, '${types[idx]}')`);
+    });
+    
+    const optionsContainer = template.querySelector('.options-container');
+    if (optionsContainer) {
+        optionsContainer.id = `options-container-${qIndex}`;
+    }
+    
+    container.appendChild(template);
+    updateOptionsContainer(template, 'multiple-choice', qIndex);
+    
+    updateLeaderboardBadge(qIndex.toString(), document.getElementById('globalLeaderboardToggle').checked);
+    
+    qIndex++;
+    updateQuestionCount();
+    
+    template.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// ============= INITIALIZATION =============
+document.addEventListener('DOMContentLoaded', function() {
+    const firstQuestion = document.getElementById('question-0');
+    if (firstQuestion) {
+        updateOptionsContainer(firstQuestion, 'multiple-choice', '0');
+        
+        const firstEditor = firstQuestion.querySelector('.editor');
+        if (firstEditor) {
+            firstEditor.setAttribute('oninput', 'syncQuestion(this, "0")');
+        }
+        
+        const typeBtns = firstQuestion.querySelectorAll('.type-btn');
+        typeBtns.forEach(btn => {
+            btn.onclick = function() {
+                changeQuestionType(this, this.getAttribute('data-type'));
+            };
+        });
+        
+        const imageBtn = firstQuestion.querySelector('.image-upload-btn');
+        if (imageBtn) {
+            imageBtn.onclick = function() {
+                addInlineImage(this, '0');
+            };
+        }
+    }
+    
+    const globalToggle = document.getElementById('globalLeaderboardToggle');
+    if (globalToggle) {
+        globalToggle.addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.leaderboard-checkbox');
+            checkboxes.forEach((checkbox, index) => {
+                checkbox.checked = this.checked;
+                updateLeaderboardBadge(index.toString(), this.checked);
+            });
+            updateLeaderboardStatus();
+        });
+        updateLeaderboardStatus();
+    }
+    
+    updateQuestionCount();
+    updateLeaderboardBadge('0', document.getElementById('leaderboard-toggle-0')?.checked || true);
+});
+
+// ============= FORM SUBMISSION =============
+document.getElementById('quizForm').onsubmit = function(e) {
+    document.querySelectorAll('.editor').forEach(editor => {
+        const qId = editor.closest('.question-block').getAttribute('data-question-index');
+        syncQuestion(editor, qId);
+    });
+    
+    const questionBlocks = document.querySelectorAll('.question-block');
+    for (let i = 0; i < questionBlocks.length; i++) {
+        const block = questionBlocks[i];
+        const qId = block.getAttribute('data-question-index');
+        const questionInput = block.querySelector('.question-input');
+        const typeInput = block.querySelector('.question-type-input');
+        
+        if (!questionInput || !questionInput.value.trim()) {
+            alert(`Please enter text for Question ${i + 1}`);
+            e.preventDefault();
+            return false;
+        }
+        
+        const questionType = typeInput ? typeInput.value : 'multiple-choice';
+        
+        if (questionType === 'multiple-choice' || questionType === 'checkbox') {
+            const optionsGrid = document.getElementById(`options-grid-${qId}`);
+            
+            if (optionsGrid) {
+                const options = optionsGrid.querySelectorAll('.option-input');
+                let hasEmptyOption = false;
+                
+                options.forEach(opt => {
+                    if (!opt.value.trim()) {
+                        hasEmptyOption = true;
+                    }
+                });
+                
+                if (hasEmptyOption) {
+                    alert(`Please fill in all options for Question ${i + 1}`);
+                    e.preventDefault();
+                    return false;
+                }
+                
+                const selectedAnswers = optionsGrid.querySelectorAll('input[type="radio"]:checked, input[type="checkbox"]:checked');
+                if (selectedAnswers.length === 0) {
+                    alert(`Please select at least one correct answer for Question ${i + 1}`);
+                    e.preventDefault();
+                    return false;
+                }
+            }
+        } else {
+            const correctAnswer = document.getElementById(`correct_answer_${qId}`);
+            if (!correctAnswer || !correctAnswer.value.trim()) {
+                alert(`Please enter the correct answer for Question ${i + 1}`);
+                e.preventDefault();
+                return false;
+            }
+        }
+    }
+    
+    return true;
+};
+</script>
+</body>
+</html>

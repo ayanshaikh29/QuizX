@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>QuizX | Realtime Web Quiz Platform</title>
+    <link rel="icon" type="image/png" 
+      href="{{ url_for('static', filename='favicon.png') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <!-- External CSS File -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav id="navbar">
+    <div class="logo-box">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="QuizX">
+    </div>
+    <div class="menu-toggle" id="menuToggle">☰</div>
+    <div class="nav-links" id="navLinks">
+        <a href="/">Home</a>
+        <a href="#features">Features</a>
+        <a href="#steps">How it Works</a>
+        <a href="/about">About</a>
+    </div>
+    <div class="nav-btns">
+        <a href="/login" class="btn-login">Login</a>
+        <a href="/register" class="btn-primary">Get Started</a>
+    </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+    <div class="hero-content">
+        <div class="hero-text">
+            <h1>Powering <span>Realtime Quizzes</span><br>for Smart Engagement</h1>
+            <p>
+                QuizX is the ultimate realtime web quiz platform that transforms learning and engagement.
+                Create interactive live quizzes, see instant results, live leaderboards, and keep your audience hooked — perfect for classrooms, corporate training, and events.
+            </p>
+            <div class="hero-buttons">
+                <a href="/register" class="btn-primary">Create Your First Quiz</a>
+                <a href="/register" class="btn-outline">Join a Quiz Now</a>
+            </div>
+        </div>
+        <div class="hero-image">
+            <!-- You can add a hero illustration here if you want -->
+        </div>
+    </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+    <h2 class="section-title">Powerful Features That Make QuizX Stand Out</h2>
+    <p class="section-subtitle">Everything you need to create engaging, realtime quizzes with ease.</p>
+    <div class="feature-grid">
+        <div class="feature-card">
+            <h3>Realtime Results</h3>
+            <p>Live leaderboard updates instantly as participants answer — no refresh needed.</p>
+        </div>
+        <div class="feature-card">
+            <h3>Live Participation</h3>
+            <p>Students join instantly with a simple code and compete in realtime.</p>
+        </div>
+        <div class="feature-card">
+            <h3>Full Admin Control</h3>
+            <p>Start, pause, reveal answers, or end quizzes with complete control.</p>
+        </div>
+        <div class="feature-card">
+            <h3>Secure & Role-Based</h3>
+            <p>Separate logins for admins and students with secure authentication.</p>
+        </div>
+    </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials">
+    <h2 class="section-title">Loved by Teachers & Trainers Worldwide</h2>
+    <p class="section-subtitle">See what our users say about QuizX.</p>
+    <div class="testimonial-grid">
+        <div class="testimonial-card">
+            <p>"QuizX has completely transformed my classroom engagement. Students love the live competition!"</p>
+            <h4>— Sarah Johnson, High School Teacher</h4>
+        </div>
+        <div class="testimonial-card">
+            <p>"Perfect for corporate training sessions. Realtime feedback helps us assess understanding instantly."</p>
+            <h4>— Mike Chen, Corporate Trainer</h4>
+        </div>
+        <div class="testimonial-card">
+            <p>"Easy to use and super engaging. My online workshops have never been more interactive."</p>
+            <h4>— Emma Rodriguez, Online Educator</h4>
+        </div>
+    </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="steps" id="steps">
+    <h2 class="section-title">How QuizX Works</h2>
+    <p class="section-subtitle">Get started in minutes — simple, powerful, and fun.</p>
+    <div class="step-grid">
+        <div class="step">
+            <div class="step-number">1</div>
+            <p><strong>Create a Quiz</strong><br>Add questions, set timer, and customize.</p>
+        </div>
+        <div class="step">
+            <div class="step-number">2</div>
+            <p><strong>Go Live</strong><br>Publish and share the unique join code.</p>
+        </div>
+        <div class="step">
+            <div class="step-number">3</div>
+            <p><strong>Participants Join</strong><br>Students enter code and start answering live.</p>
+        </div>
+        <div class="step">
+            <div class="step-number">4</div>
+            <p><strong>See Results Instantly</strong><br>Live leaderboard and detailed analytics.</p>
+        </div>
+    </div>
+</section>
+
+<!-- USE CASES -->
+<section class="use-cases">
+    <h2 class="section-title">Perfect For Every Scenario</h2>
+    <div class="cases">
+        <div class="case">Classrooms & Schools</div>
+        <div class="case">Corporate Training</div>
+        <div class="case">Live Events & Webinars</div>
+        <div class="case">Online Courses & Tutoring</div>
+        <div class="case">Team Building Activities</div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+    <h2>Ready to Transform Your Teaching & Training?</h2>
+    <p>Join thousands of educators and trainers who are making learning interactive and fun with QuizX.</p>
+    <a href="/register">Get Started for Free — No Credit Card Required</a>
+</section>
+
+<footer>
+    © 2025 QuizX • Realtime Web Quiz Application • All Rights Reserved
+</footer>
+
+<script>
+    // Mobile menu toggle
+    document.getElementById('menuToggle').addEventListener('click', () => {
+        document.getElementById('navLinks').classList.toggle('active');
+    });
+
+    // Navbar shadow on scroll
+    window.addEventListener('scroll', () => {
+        document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 50);
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizX | Live Leaderboard</title>
+    <link rel="icon" type="image/png" 
+      href="{{ url_for('static', filename='favicon.png') }}">
+
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin_live_leaderboard.css') }}">
+</head>
+<body>
+
+<div class="leaderboard-container">
+    <header class="leaderboard-header">
+        <button class="back-btn" onclick="window.location.href='{{ url_for('student.dashboard') }}'">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <div class="header-title">
+            <h2>Live Leaderboard</h2>
+        </div>
+    </header>
+
+    <div class="container-fluid p-4">
+        <div class="status-container" id="statusMessage"></div>
+
+        <div class="podium-section" id="podiumContainer"></div>
+
+        <div class="list-section" id="playerList"></div>
+
+        <div class="empty-state" id="emptyState">
+            <i class="fas fa-users" style="font-size: 3rem; margin-bottom: 1rem; color: #94a3b8;"></i>
+            <p class="text-muted">Waiting for results...</p>
+        </div>
+
+        <div class="action-footer" id="actionFooter">
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-primary-custom">
+                <i class="fas fa-arrow-left me-2"></i> Return to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+const socket = io();
+const quizId = {{ quiz_id }};
+let quizStatus = "{{ quiz_status }}".toLowerCase(); 
+const currentStudent = "{{ session.get('username', 'Guest') }}";
+let isLastQuestion = false;
+
+console.log('=== LEADERBOARD LIVE ===');
+
+// Join quiz room
+socket.emit("join_quiz", { quiz_id: quizId });
+
+// Listen for next question
+socket.on("load_next_question", (data) => {
+    if (parseInt(data.quiz_id) !== quizId) return;
+    window.location.href = `/student/quiz/${data.quiz_id}?qindex=${data.qindex}`;
+});
+
+// Listen for quiz finished
+socket.on("quiz_finished", (data) => {
+    quizStatus = 'done';
+    isLastQuestion = true;
+    renderStatusMessage(); 
+    setTimeout(() => fetchLeaderboard(), 500);
+});
+
+// Listen for leaderboard updates
+socket.on("leaderboard_update", (data) => {
+    const list = Array.isArray(data) ? data : data.leaderboard;
+    renderLeaderboard(list);
+});
+
+function renderStatusMessage() {
+    const statusDiv = document.getElementById('statusMessage');
+    const footerDiv = document.getElementById('actionFooter');
+    
+    if (quizStatus === 'done' || quizStatus === 'finished' || quizStatus === 'completed' || isLastQuestion) {
+        statusDiv.innerHTML = `
+            <div class="status-banner final-status">
+                <i class="fas fa-flag-checkered"></i>
+                <div>
+                    <div class="status-title">Quiz Complete!</div>
+                    <div class="status-subtitle">Final Leaderboard</div>
+                </div>
+            </div>
+        `;
+        footerDiv.style.display = 'flex';
+    } else {
+        statusDiv.innerHTML = `
+            <div class="status-banner waiting-status">
+                <i class="fas fa-hourglass-half"></i>
+                <div>
+                    <div class="status-title">Waiting for Admin</div>
+                    <div class="status-subtitle">Admin will start the next question soon...</div>
+                </div>
+            </div>
+        `;
+        footerDiv.style.display = 'none';
+    }
+}
+
+function getInitials(name) {
+    if (!name) return '?';
+    const parts = name.split(/[-\s]/);
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return name.substring(0, 2).toUpperCase();
+}
+
+function isCurrentUser(studentName) {
+    return studentName === currentStudent;
+}
+
+function getAvatarClass(name) {
+    const len = name.length;
+    return `avatar-grad-${(len % 4) + 1}`;
+}
+
+function renderLeaderboard(leaderboard) {
+    if (!leaderboard || leaderboard.length === 0) {
+        document.getElementById('emptyState').style.display = 'block';
+        return;
+    }
+    document.getElementById('emptyState').style.display = 'none';
+
+    leaderboard.sort((a, b) => {
+        if (b.points !== a.points) return b.points - a.points;
+        if (b.correct !== a.correct) return b.correct - a.correct;
+        return a.time - b.time;
+    });
+
+    const top3 = leaderboard.slice(0, 3);
+    const others = leaderboard.slice(3);
+
+    renderPodium(top3);
+    renderOthers(others, 4);
+}
+
+function renderPodium(top3) {
+    const container = document.getElementById('podiumContainer');
+    container.innerHTML = '';
+
+    let displayOrder = [];
+    if (top3.length === 1) {
+        displayOrder = [{ data: top3[0], class: 'first', rank: 1 }];
+    } else if (top3.length === 2) {
+        displayOrder = [
+            { data: top3[1], class: 'second', rank: 2 },
+            { data: top3[0], class: 'first', rank: 1 }
+        ];
+    } else {
+        displayOrder = [
+            { data: top3[1], class: 'second', rank: 2 },
+            { data: top3[0], class: 'first', rank: 1 },
+            { data: top3[2], class: 'third', rank: 3 }
+        ];
+    }
+
+    displayOrder.forEach(pos => {
+        if (!pos.data) return;
+        const p = pos.data;
+        const isUser = isCurrentUser(p.student);
+        const nameDisplay = isUser ? 'You' : p.student.split(' ')[0];
+        
+        container.innerHTML += `
+            <div class="podium-item ${pos.class}">
+                ${pos.rank === 1 ? '<div class="crown-icon"><i class="fas fa-crown"></i></div>' : ''}
+                <div class="avatar-wrapper">
+                    <div class="podium-avatar ${getAvatarClass(p.student)}">
+                        ${getInitials(p.student)}
+                    </div>
+                    <div class="rank-badge">${pos.rank}</div>
+                </div>
+                <div class="podium-name">${nameDisplay}</div>
+                <div class="podium-points">${p.points}</div>
+            </div>`;
+    });
+}
+
+function renderOthers(players, startRank) {
+    const container = document.getElementById('playerList');
+    container.innerHTML = ''; 
+
+    players.forEach((p, index) => {
+        const rank = startRank + index;
+        const isUser = isCurrentUser(p.student);
+        
+        container.innerHTML += `
+            <div class="player-row ${isUser ? 'current-user' : ''}" style="animation-delay: ${index * 0.05}s">
+                <div class="row-rank">${rank}</div>
+                <div class="row-avatar ${getAvatarClass(p.student)}">${getInitials(p.student)}</div>
+                <div class="row-info">
+                    <div class="row-name">${isUser ? 'You' : p.student}</div>
+                </div>
+                <div class="row-points">${p.points} pts</div>
+            </div>`;
+    });
+}
+
+function fetchLeaderboard() {
+    fetch(`/student/api/leaderboard/${quizId}`)
+        .then(r => r.json())
+        .then(data => renderLeaderboard(data.leaderboard))
+        .catch(err => console.error(err));
+}
+
+renderStatusMessage();
+fetchLeaderboard();
+</script>
+</body>
+</html>

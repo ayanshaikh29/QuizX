@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizX | Analytics - {{ quiz.title }}</title>
+    <link rel="icon" type="image/png" 
+      href="{{ url_for('static', filename='favicon.png') }}">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin_dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin_quiz.css') }}">
+    
+    <style>
+        /* Specific additions for Analytics page to maintain the theme */
+        .stat-card-v2 {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            border: 1px solid #f1f5f9;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.02);
+            height: 100%;
+        }
+        .icon-circle {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+        .bg-blue-light { background: #e0f2fe; color: #0369a1; }
+        .bg-green-light { background: #dcfce7; color: #15803d; }
+        .bg-purple-light { background: #f3e8ff; color: #7e22ce; }
+        .bg-orange-light { background: #ffedd5; color: #c2410c; }
+        
+        .diff-tag {
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .easy { background: #dcfce7; color: #15803d; }
+        .medium { background: #fef9c3; color: #a16207; }
+        .hard { background: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body>
+
+<div class="dashboard-wrapper">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+            <img src="{{ url_for('static', filename='logo.png') }}"
+            alt="QuizX Logo"
+            style="height:100px;">
+        </div>
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('admin.dashboard') }}" class="nav-link"><i class="fas fa-th-large"></i> Dashboard</a>
+            <a href="{{ url_for('admin.quizzes') }}" class="nav-link"><i class="fas fa-book"></i> Quizzes</a>
+            <a href="#" class="nav-link active"><i class="fas fa-chart-line"></i> Analytics</a>
+            <a href="{{ url_for('auth.profile') }}" class="nav-link"><i class="fas fa-user-circle"></i> Profile</a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="{{ url_for('auth.logout') }}" class="logout-link"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="content-header">
+            <div class="header-title">
+                <h4 class="fw-bold mb-0">System Analytics</h4>
+                <small class="text-muted">Real-time performance for <b>{{ quiz.title }}</b></small>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-light border-0 fw-600 px-3" onclick="window.print()" style="border-radius: 10px;">
+                    <i class="fas fa-download me-2 text-primary"></i> Export PDF
+                </button>
+                <div class="header-user">
+                    <img src="https://ui-avatars.com/api/?name={{ session.username }}&background=6fbf4a&color=fff" class="avatar" alt="Avatar">
+                </div>
+            </div>
+        </header>
+
+        <div class="container-fluid p-4">
+            
+            <div class="row g-4 mb-4">
+                <div class="col-md-3">
+                    <div class="stat-card-v2 animate-slide-up">
+                        <div class="icon-circle bg-blue-light"><i class="fas fa-users"></i></div>
+                        <p class="text-muted small fw-600 mb-1">Total Participants</p>
+                        <h3 class="fw-800 mb-0">{{ total_participants }}</h3>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card-v2 animate-slide-up">
+                        <div class="icon-circle bg-green-light"><i class="fas fa-check-double"></i></div>
+                        <p class="text-muted small fw-600 mb-1">Avg. Accuracy</p>
+                        <h3 class="fw-800 mb-0">{{ accuracy_rate }}%</h3>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card-v2 animate-slide-up">
+                        <div class="icon-circle bg-purple-light"><i class="fas fa-stopwatch"></i></div>
+                        <p class="text-muted small fw-600 mb-1">Avg. Speed</p>
+                        <h3 class="fw-800 mb-0">{{ avg_time }}s</h3>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card-v2 animate-slide-up">
+                        <div class="icon-circle bg-orange-light"><i class="fas fa-fire"></i></div>
+                        <p class="text-muted small fw-600 mb-1">Completion Rate</p>
+                        <h3 class="fw-800 mb-0">{{ completion_rate }}%</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <div class="quiz-card-pro animate-slide-up">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="fw-800 mb-0"><i class="fas fa-brain me-2 text-primary"></i> Question Insight Matrix</h5>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-borderless align-middle">
+                                <thead class="text-muted small">
+                                    <tr>
+                                        <th class="ps-0">QUESTION</th>
+                                        <th>DIFFICULTY</th>
+                                        <th>CORRECT %</th>
+                                        <th>AVG TIME</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for q in question_data %}
+                                    <tr style="border-bottom: 1px solid #f8fafc;">
+                                        <td class="ps-0 py-3">
+                                            <span class="fw-600 text-dark">{{ q.text[:45] }}...</span>
+                                        </td>
+                                        <td><span class="diff-tag {{ q.difficulty }}">{{ q.difficulty }}</span></td>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div class="progress flex-grow-1" style="height: 6px; border-radius: 10px;">
+                                                    <div class="progress-bar bg-success" style="width: {{ q.correct_pct }}%"></div>
+                                                </div>
+                                                <span class="small fw-700">{{ q.correct_pct }}%</span>
+                                            </div>
+                                        </td>
+                                        <td class="fw-600 text-muted">{{ q.avg_time }}s</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="quiz-card-pro animate-slide-up">
+                        <h5 class="fw-800 mb-4"><i class="fas fa-award me-2 text-warning"></i> Elite Performers</h5>
+                        <div class="performer-list">
+                            {% for student in top_students %}
+                            <div class="d-flex align-items-center justify-content-between p-3 mb-2" style="background: #f8fafc; border-radius: 16px;">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="fw-800 text-primary" style="width: 24px;">#{{ loop.index }}</div>
+                                    <span class="fw-700">{{ student.name }}</span>
+                                </div>
+                                <span class="badge bg-white text-dark border py-2 px-3" style="border-radius: 10px;">{{ student.score }} XP</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

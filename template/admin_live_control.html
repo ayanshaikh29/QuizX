@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="QuizX Live Control Center - Manage your live quiz sessions">
+    <meta name="theme-color" content="#6fbf4a">
+    <title>QuizX | Live Control Center</title>
+    <link rel="icon" type="image/png" 
+      href="{{ url_for('static', filename='favicon.png') }}">
+
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
+
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Stylesheets -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Link to separate CSS file -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin_dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin_live_control.css') }}">
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="animated-bg">
+        <div class="floating-shapes">
+            <span></span><span></span><span></span>
+            <span></span><span></span><span></span>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loader">
+            <div class="loader-ring"></div>
+            <div class="loader-ring"></div>
+            <div class="loader-ring"></div>
+            <i class="fas fa-bolt loader-icon"></i>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="dashboard-wrapper">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <span class="logo-text">QuizX</span>
+                    <span class="logo-badge">Admin</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    
+                    
+                    <a href="{{ url_for('admin.dashboard') }}" class="nav-link" data-tooltip="Dashboard">
+                        <div class="nav-icon">
+                            <i class="fas fa-th-large"></i>
+                        </div>
+                        <span class="nav-text">Dashboard</span>
+                    </a>
+
+                    <a href="{{ url_for('admin.quizzes') }}" class="nav-link" data-tooltip="Quizzes">
+                        <div class="nav-icon">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <span class="nav-text">Quizzes</span>
+                    </a>
+
+                    <a href="{{ url_for('admin.quizzes') }}" class="nav-link" data-tooltip="Analytics">
+                        <div class="nav-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <span class="nav-text">Analytics</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    
+                    
+                    <a href="{{ url_for('auth.profile') }}" class="nav-link" data-tooltip="Profile">
+                        <div class="nav-icon">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                        <span class="nav-text">Profile</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="{{ url_for('auth.logout') }}" class="logout-link">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="content-header glass-effect">
+                <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <div class="header-title">
+                    <div class="live-indicator">
+                        <span class="pulse-dot"></span>
+                        <span class="live-text">LIVE</span>
+                    </div>
+                    <div class="title-content">
+                        <h1>Control Center</h1>
+                        <p class="quiz-title">{{ quiz.title }}</p>
+                    </div>
+                </div>
+
+                <div class="header-actions">
+                    <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    
+                    <div class="header-user">
+                        <div class="user-info">
+                            <span class="username">{{ session.username }}</span>
+                            <span class="role">Administrator</span>
+                        </div>
+                        <div class="avatar-wrapper">
+                            <img
+                                src="https://ui-avatars.com/api/?name={{ session.username }}&background=6fbf4a&color=fff&bold=true"
+                                class="avatar"
+                                alt="User avatar"
+                                loading="lazy"
+                            >
+                            <span class="status-indicator online"></span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main Dashboard Content -->
+            <div class="dashboard-content">
+                <div class="content-grid">
+                    <!-- Left Column - Stats -->
+                    <div class="stats-column">
+                        <!-- Join Code Card -->
+                        <div class="stat-card join-code-card glass-effect" data-aos="fade-up">
+                            <div class="card-header">
+                                <div class="card-icon">
+                                    <i class="fas fa-key"></i>
+                                </div>
+                                <h3>Join Code</h3>
+                            </div>
+                            <div class="join-code-display" 
+                                 onclick="copyJoinCode()" 
+                                 tabindex="0" 
+                                 role="button" 
+                                 aria-label="Copy join code {{ quiz.join_code }}"
+                                 onkeypress="if(event.key==='Enter') copyJoinCode()">
+                                <div class="code-value">
+                                    <span class="code-char" style="--delay: 0">{{ quiz.join_code[0] }}</span>
+                                    <span class="code-char" style="--delay: 1">{{ quiz.join_code[1] }}</span>
+                                    <span class="code-char" style="--delay: 2">{{ quiz.join_code[2] }}</span>
+                                    <span class="code-char" style="--delay: 3">{{ quiz.join_code[3] }}</span>
+                                    <span class="code-char" style="--delay: 4">{{ quiz.join_code[4] if quiz.join_code|length > 4 else '' }}</span>
+                                    <span class="code-char" style="--delay: 5">{{ quiz.join_code[5] if quiz.join_code|length > 5 else '' }}</span>
+                                </div>
+                                <div class="copy-hint">
+                                    <i class="fas fa-copy"></i>
+                                    <span>Click to copy</span>
+                                </div>
+                            </div>
+                            <div class="qr-code-mini" id="qrCode"></div>
+                        </div>
+
+                        <!-- Live Players Card -->
+                        <div class="stat-card players-card glass-effect" data-aos="fade-up" data-aos-delay="100">
+                            <div class="card-header">
+                                <div class="card-icon pulse">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <h3>Live Players</h3>
+                            </div>
+                            <div class="players-display">
+                                <div class="player-count-wrapper">
+                                    <span class="player-count" id="playerCount">0</span>
+                                    <span class="player-label">Connected</span>
+                                </div>
+                                <div class="player-avatars" id="playerAvatars">
+                                    <!-- Dynamic player avatars will be inserted here -->
+                                </div>
+                            </div>
+                            <div class="progress-wrapper">
+                                <div class="progress-bar-container" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                                    <div class="progress-bar-fill" id="progressBar"></div>
+                                    <div class="progress-glow" id="progressGlow"></div>
+                                </div>
+                                <div class="progress-labels">
+                                    <span>0</span>
+                                    <span id="maxPlayers">100</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Stats Card -->
+                        <div class="stat-card quick-stats-card glass-effect" data-aos="fade-up" data-aos-delay="200">
+                            <div class="quick-stats-grid">
+                                <div class="quick-stat">
+                                    <div class="stat-icon">
+                                        <i class="fas fa-question-circle"></i>
+                                    </div>
+                                    <div class="stat-details">
+                                        <span class="stat-value">{{ total_questions }}</span>
+                                        <span class="stat-label">Questions</span>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column - Main Control -->
+                    <div class="control-column">
+                        <div class="control-card glass-effect" data-aos="fade-up" data-aos-delay="150">
+                            {% if total_questions > 0 %}
+                                <!-- Status Header -->
+                                <div class="control-header">
+                                    {% if not quiz.is_active %}
+                                        <div class="status-badge waiting">
+                                            <i class="fas fa-hourglass-half"></i>
+                                            <span>Waiting to Start</span>
+                                        </div>
+                                    {% else %}
+                                        <div class="status-badge active">
+                                            <i class="fas fa-play-circle"></i>
+                                            <span>Session Active</span>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <div class="question-progress">
+                                        <span class="current">{{ current_index + 1 }}</span>
+                                        <span class="separator">/</span>
+                                        <span class="total">{{ total_questions }}</span>
+                                    </div>
+                                </div>
+
+                                <!-- Progress Timeline -->
+                                <div class="timeline-progress">
+                                    {% for i in range(total_questions) %}
+                                        <div class="timeline-dot {{ 'completed' if i < current_index else 'active' if i == current_index else '' }}" 
+                                             data-question="{{ i + 1 }}">
+                                            {% if i < current_index %}
+                                                <i class="fas fa-check"></i>
+                                            {% else %}
+                                                {{ i + 1 }}
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+
+                                <!-- Main Content Area -->
+                                <div class="control-main">
+                                    {% if not quiz.is_active %}
+                                        <!-- Start Screen -->
+                                        <div class="start-screen">
+                                            <div class="start-animation">
+                                                <div class="rocket-container">
+                                                    <i class="fas fa-rocket rocket-icon"></i>
+                                                    <div class="rocket-flames"></div>
+                                                </div>
+                                            </div>
+                                            <h2 class="start-title">Ready to Launch?</h2>
+                                            <p class="start-subtitle">{{ total_questions }} questions • Players are waiting</p>
+                                            
+                                            <a href="{{ url_for('admin.start_quiz', quiz_id=quiz.id) }}" 
+                                               class="btn-start-session"
+                                               onclick="startConfetti()">
+                                                <span class="btn-bg"></span>
+                                                <span class="btn-content">
+                                                    <i class="fas fa-play"></i>
+                                                    <span>Start Live Session</span>
+                                                </span>
+                                            </a>
+                                        </div>
+                                    {% else %}
+                                        <!-- Active Question Display -->
+                                        {% if current_question %}
+                                            <div class="question-display">
+                                                <div class="question-badge">
+                                                    <span>Question {{ current_index + 1 }}</span>
+                                                </div>
+                                                
+                                                <h2 class="question-text">{{ current_question.question }}</h2>
+                                                
+                                                <div class="options-grid">
+                                                    {% set options = [
+                                                        {'value': current_question.option1, 'letter': 'A', 'color': 'red'},
+                                                        {'value': current_question.option2, 'letter': 'B', 'color': 'blue'},
+                                                        {'value': current_question.option3, 'letter': 'C', 'color': 'yellow'},
+                                                        {'value': current_question.option4, 'letter': 'D', 'color': 'green'}
+                                                    ] %}
+                                                    {% for opt in options %}
+                                                        <div class="option-card {{ opt.color }} {{ 'correct' if current_question.answer == opt.value else '' }}"
+                                                             tabindex="0">
+                                                            <span class="option-letter">{{ opt.letter }}</span>
+                                                            <span class="option-text">{{ opt.value }}</span>
+                                                            {% if current_question.answer == opt.value %}
+                                                                <span class="correct-badge">
+                                                                    <i class="fas fa-check"></i>
+                                                                </span>
+                                                            {% endif %}
+                                                        </div>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                        {% endif %}
+
+                                        <!-- Navigation Controls -->
+                                        <div class="navigation-controls">
+                                            <button onclick="prevQuestion()" 
+                                                    class="nav-btn prev-btn" 
+                                                    {{ 'disabled' if current_index == 0 }}
+                                                    aria-label="Previous question">
+                                                <i class="fas fa-chevron-left"></i>
+                                                <span>Previous</span>
+                                            </button>
+                                            
+                                            {% if current_index < total_questions - 1 %}
+                                                <button onclick="nextQuestion()" 
+                                                        class="nav-btn next-btn primary"
+                                                        aria-label="Next question">
+                                                    <span>Next Question</span>
+                                                    <i class="fas fa-chevron-right"></i>
+                                                </button>
+                                            {% else %}
+                                                <button onclick="finishQuiz()" 
+                                                        class="nav-btn finish-btn"
+                                                        aria-label="Finish quiz">
+                                                    <span>Finish Quiz</span>
+                                                    <i class="fas fa-flag-checkered"></i>
+                                                </button>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                <!-- No Questions State -->
+                                <div class="empty-state">
+                                    <div class="empty-icon">
+                                        <i class="fas fa-inbox"></i>
+                                    </div>
+                                    <h3>No Questions Found</h3>
+                                    <p>Add questions to this quiz before starting a live session.</p>
+                                    <a href="{{ url_for('admin.quizzes') }}" class="btn-add-questions">
+                                        <i class="fas fa-plus"></i>
+                                        <span>Add Questions</span>
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.min.js"></script>
+    
+    <script>
+        // ===========================================
+        // Configuration & State
+        // ===========================================
+        const CONFIG = {
+            quizId: {{ quiz.id }},
+            joinCode: "{{ quiz.join_code }}",
+            isActive: {{ 'true' if quiz.is_active else 'false' }},
+            maxPlayers: 100,
+            reloadDelay: 600
+        };
+
+        let state = {
+            playerCount: 0,
+            elapsedSeconds: 0,
+            timerInterval: null,
+            isDarkMode: localStorage.getItem('darkMode') === 'true'
+        };
+
+        // ===========================================
+        // Socket.IO Connection
+        // ===========================================
+        const socket = io();
+        
+        socket.on('connect', () => {
+            console.log('🔌 Connected to server');
+            socket.emit("join_quiz", { quiz_id: CONFIG.quizId });
+        });
+
+        socket.on('disconnect', () => {
+            console.log('⚠️ Disconnected from server');
+            showToast('Connection lost. Reconnecting...', 'warning');
+        });
+
+        socket.on("leaderboard_update", (data) => {
+            const list = Array.isArray(data) ? data : (data.leaderboard || []);
+            updatePlayerCount(list.length);
+            updatePlayerAvatars(list);
+        });
+
+        // ===========================================
+        // UI Update Functions
+        // ===========================================
+        function updatePlayerCount(count) {
+            state.playerCount = count;
+            const countEl = document.getElementById("playerCount");
+            const progressBar = document.getElementById("progressBar");
+            const progressGlow = document.getElementById("progressGlow");
+            
+            // Animate count change
+            animateValue(countEl, parseInt(countEl.textContent) || 0, count, 500);
+            
+            // Update progress bar
+            const percentage = Math.min((count / CONFIG.maxPlayers) * 100, 100);
+            progressBar.style.width = percentage + "%";
+            progressGlow.style.width = percentage + "%";
+            progressBar.parentElement.setAttribute("aria-valuenow", count);
+        }
+
+        function updatePlayerAvatars(players) {
+            const container = document.getElementById("playerAvatars");
+            container.innerHTML = '';
+            
+            const displayPlayers = players.slice(0, 5);
+            displayPlayers.forEach((player, index) => {
+                const avatar = document.createElement('div');
+                avatar.className = 'mini-avatar';
+                avatar.style.animationDelay = `${index * 0.1}s`;
+                avatar.innerHTML = `<img src="https://ui-avatars.com/api/?name=${encodeURIComponent(player.username || 'P')}&background=random&size=32" alt="">`;
+                container.appendChild(avatar);
+            });
+            
+            if (players.length > 5) {
+                const more = document.createElement('div');
+                more.className = 'mini-avatar more';
+                more.textContent = `+${players.length - 5}`;
+                container.appendChild(more);
+            }
+        }
+
+        function animateValue(element, start, end, duration) {
+            const range = end - start;
+            const startTime = performance.now();
+            
+            function update(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const easeProgress = 1 - Math.pow(1 - progress, 3);
+                const current = Math.floor(start + range * easeProgress);
+                element.textContent = current;
+                
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                }
+            }
+            
+            requestAnimationFrame(update);
+        }
+
+        // ===========================================
+        // Quiz Control Functions
+        // ===========================================
+        function nextQuestion() {
+            showLoading();
+            socket.emit("admin_next_question", { quiz_id: CONFIG.quizId });
+            setTimeout(() => location.reload(), CONFIG.reloadDelay);
+        }
+
+        function prevQuestion() {
+            showLoading();
+            socket.emit("admin_previous_question", { quiz_id: CONFIG.quizId });
+            setTimeout(() => location.reload(), CONFIG.reloadDelay);
+        }
+
+        function finishQuiz() {
+            showLoading();
+            startConfetti();
+            setTimeout(() => {
+                window.location.href = "{{ url_for('admin.live_leaderboard', quiz_id=quiz.id) }}";
+            }, 1000);
+        }
+
+        // ===========================================
+        // Utility Functions
+        // ===========================================
+        function copyJoinCode() {
+            navigator.clipboard.writeText(CONFIG.joinCode).then(() => {
+                showToast('Join code copied!', 'success');
+                
+                // Visual feedback
+                const display = document.querySelector('.join-code-display');
+                display.classList.add('copied');
+                setTimeout(() => display.classList.remove('copied'), 1000);
+            }).catch(() => {
+                showToast('Failed to copy', 'error');
+            });
+        }
+
+        function startConfetti() {
+            const duration = 3000;
+            const end = Date.now() + duration;
+            const colors = ['#6fbf4a', '#4ade80', '#22c55e', '#ffffff'];
+
+            (function frame() {
+                confetti({
+                    particleCount: 4,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 },
+                    colors: colors
+                });
+                confetti({
+                    particleCount: 4,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 },
+                    colors: colors
+                });
+
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            }());
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `custom-toast ${type}`;
+            
+            const icons = {
+                success: 'fa-check-circle',
+                error: 'fa-exclamation-circle',
+                warning: 'fa-exclamation-triangle',
+                info: 'fa-info-circle'
+            };
+            
+            toast.innerHTML = `
+                <i class="fas ${icons[type]}"></i>
+                <span>${message}</span>
+            `;
+            
+            container.appendChild(toast);
+            
+            // Trigger animation
+            requestAnimationFrame(() => toast.classList.add('show'));
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function showLoading() {
+            document.getElementById('loadingOverlay').classList.add('active');
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.remove('active');
+        }
+
+        // ===========================================
+        // Timer Functions
+        // ===========================================
+        function startTimer() {
+            if (CONFIG.isActive) {
+                state.timerInterval = setInterval(() => {
+                    state.elapsedSeconds++;
+                    const minutes = Math.floor(state.elapsedSeconds / 60).toString().padStart(2, '0');
+                    const seconds = (state.elapsedSeconds % 60).toString().padStart(2, '0');
+                    document.getElementById('elapsedTime').textContent = `${minutes}:${seconds}`;
+                }, 1000);
+            }
+        }
+
+        // ===========================================
+        // Theme Toggle
+        // ===========================================
+        function toggleTheme() {
+            state.isDarkMode = !state.isDarkMode;
+            document.body.classList.toggle('dark-mode', state.isDarkMode);
+            localStorage.setItem('darkMode', state.isDarkMode);
+            
+            const icon = document.querySelector('#themeToggle i');
+            icon.className = state.isDarkMode ? 'fas fa-sun' : 'fas fa-moon';
+        }
+
+        // ===========================================
+        // Sidebar Toggle
+        // ===========================================
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('collapsed');
+            document.querySelector('.main-content').classList.toggle('expanded');
+        }
+
+        // ===========================================
+        // Initialization
+        // ===========================================
+        document.addEventListener('DOMContentLoaded', () => {
+            // Hide loading after page loads
+            setTimeout(hideLoading, 500);
+            
+            // Initialize theme
+            if (state.isDarkMode) {
+                document.body.classList.add('dark-mode');
+                document.querySelector('#themeToggle i').className = 'fas fa-sun';
+            }
+            
+            // Start timer
+            startTimer();
+            
+            // Event listeners
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+            document.getElementById('sidebarToggle').addEventListener('click', toggleSidebar);
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowRight' && CONFIG.isActive) {
+                    nextQuestion();
+                } else if (e.key === 'ArrowLeft' && CONFIG.isActive) {
+                    prevQuestion();
+                }
+            });
+
+            // Add entrance animations
+            document.querySelectorAll('[data-aos]').forEach((el, index) => {
+                el.style.animationDelay = `${index * 0.1}s`;
+                el.classList.add('animate-in');
+            });
+        });
+    </script>
+</body>
+</html>

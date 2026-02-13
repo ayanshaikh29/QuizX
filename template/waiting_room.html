@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waiting Room | QuizX</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/student_dashboard.css') }}">
+    
+    <style>
+        /* Waiting Room Specific Customizations matching Dashboard theme */
+        :root {
+            --primary: #6fbf4a;
+        }
+
+        .waiting-card-pro {
+            background: white;
+            border-radius: 30px;
+            border: 1px solid #f1f5f9;
+            padding: 50px 40px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+        }
+
+        .lobby-panel-pro {
+            background: white;
+            border-radius: 30px;
+            border: 1px solid #f1f5f9;
+            height: calc(100vh - 180px);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+        }
+
+        .user-list {
+            padding: 20px;
+            list-style: none;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .user-card {
+            background: #f8fafc;
+            border-radius: 18px;
+            padding: 14px 18px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border: 1px solid transparent;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .user-card.me {
+            border-color: rgba(111, 191, 74, 0.3);
+            background: #f0fdf4;
+        }
+
+        .u-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.1rem;
+        }
+
+        /* Modern Spinner */
+        .spinner-container {
+            position: relative;
+            width: 140px;
+            height: 140px;
+            margin: 0 auto 35px;
+        }
+
+        .spinner-ring {
+            width: 100%;
+            height: 100%;
+            border: 5px solid #f1f5f9;
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1.5s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+        }
+
+        .spinner-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2.5rem;
+            color: var(--primary);
+            animation: pulse 2s infinite;
+        }
+
+        .tip-box-modern {
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 25px;
+            border-left: 5px solid var(--primary);
+            text-align: left;
+            margin-top: 40px;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    </style>
+</head>
+<body>
+
+<div class="dashboard-wrapper">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="QuizX Logo" style="height:80px;">
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('student.dashboard') }}" class="nav-link">
+                <i class="fas fa-th-large"></i> Dashboard
+            </a>
+            <a href="{{ url_for('student.quizzes') }}" class="nav-link active">
+                <i class="fas fa-play-circle"></i> Live Quizzes
+            </a>
+            <a href="{{ url_for('student.history') }}" class="nav-link">
+                <i class="fas fa-history"></i> My History
+            </a>
+            <a href="{{ url_for('auth.profile') }}" class="nav-link">
+                <i class="fas fa-user-circle"></i> Profile
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="{{ url_for('auth.logout') }}" class="logout-link"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="content-header">
+            <div class="header-title">
+                <h4 class="fw-bold mb-0">Quiz Lobby</h4>
+                <p class="text-muted small mb-0">Game: <span class="text-primary fw-bold">{{ quiz.title }}</span></p>
+            </div>
+            <div class="header-user">
+                <div class="user-info text-end me-3 d-none d-md-block">
+                    <span class="username fw-bold d-block">{{ session.username }}</span>
+                    <span class="role text-success small fw-bold">Online & Ready</span>
+                </div>
+                <img src="https://ui-avatars.com/api/?name={{ session.username }}&background=6fbf4a&color=fff" class="avatar" alt="avatar">
+            </div>
+        </header>
+
+        <div class="container-fluid p-4">
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <div class="waiting-card-pro animate-slide-up">
+                        <div class="badge bg-danger-subtle text-danger px-4 py-2 rounded-pill mb-4 animate__animated animate__pulse animate__infinite">
+                            <i class="fas fa-broadcast-tower me-2"></i> WAITING FOR HOST TO START
+                        </div>
+                        
+                        <div class="spinner-container">
+                            <div class="spinner-ring"></div>
+                            <i class="fas fa-hourglass-start spinner-icon"></i>
+                        </div>
+
+                        <div class="quiz-info">
+                            <h1 class="fw-800 display-6">{{ quiz.title }}</h1>
+                            <p class="text-muted lead">The challenge is about to begin. Don't close this page!</p>
+                        </div>
+
+                        <div class="tip-box-modern mx-auto" style="max-width: 550px;">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="icon-circle bg-white shadow-sm me-3 text-primary p-2 rounded-circle" style="width: 40px; height: 40px; display:flex; align-items:center; justify-content:center;">
+                                    <i class="fas fa-lightbulb"></i>
+                                </div>
+                                <span class="fw-bold text-uppercase small letter-spacing-1">Pro Tip</span>
+                            </div>
+                            <p id="tip-text" class="mb-0 fw-medium text-dark animate__animated animate__fadeIn">Fast answers give you bonus points, but a wrong answer gives zero!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="lobby-panel-pro animate-slide-up" style="animation-delay: 0.1s;">
+                        <div class="p-4 border-bottom d-flex justify-content-between align-items-center bg-white sticky-top">
+                            <h5 class="fw-800 mb-0">Lobby</h5>
+                            <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-2">
+                                <i class="fas fa-users me-1"></i> <span id="count-badge">0</span> Players
+                            </span>
+                        </div>
+                        
+                        <ul id="user-list" class="user-list">
+                            </ul>
+
+                        <div class="p-3 bg-light border-top text-center">
+                            <small class="text-muted"><i class="fas fa-shield-alt text-success me-1"></i> Secure Connection Active</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+    const socket = io();
+    const quizId = "{{ quiz.id }}";
+    const myUsername = "{{ session.username }}";
+
+    const tips = [
+        "Read each question twice before choosing!",
+        "Double-check your answers before submitting.",
+        "Fast answers give more points, but accuracy is key!",
+        "Ensure your internet connection is stable.",
+        "The leaderboard updates after every question!"
+    ];
+
+    let tipIndex = 0;
+    setInterval(() => {
+        const tipEl = document.getElementById('tip-text');
+        tipIndex = (tipIndex + 1) % tips.length;
+        tipEl.style.opacity = 0;
+        setTimeout(() => {
+            tipEl.innerText = tips[tipIndex];
+            tipEl.style.opacity = 1;
+        }, 500);
+    }, 6000);
+
+    socket.emit('join_waiting_room', { 
+        quiz_id: quizId, 
+        username: myUsername 
+    });
+
+    socket.on('update_participants', function(data) {
+        const list = document.getElementById('user-list');
+        const badge = document.getElementById('count-badge');
+        badge.innerText = data.count;
+        list.innerHTML = '';
+
+        data.users.forEach(user => {
+            const isMe = user === myUsername;
+            const li = document.createElement('li');
+            li.className = `user-card animate__animated animate__fadeInRight ${isMe ? 'me' : ''}`;
+            li.innerHTML = `
+                <div class="u-avatar" style="${isMe ? 'background:#1e293b' : ''}">${user.charAt(0).toUpperCase()}</div>
+                <div class="d-flex flex-column">
+                    <span class="fw-bold text-dark">${user}${isMe ? ' <span class="badge bg-dark ms-1" style="font-size:9px">YOU</span>' : ''}</span>
+                    <span class="text-muted" style="font-size:0.75rem;">${isMe ? 'Ready to dominate' : 'Ready to play'}</span>
+                </div>
+                <div class="ms-auto"><i class="fas fa-check-circle text-success"></i></div>
+            `;
+            list.appendChild(li);
+        });
+    });
+
+    socket.on('begin_quiz', function(data) {
+        if(data.quiz_id == quizId) {
+            document.body.innerHTML = `
+                <div class="start-overlay d-flex flex-column align-items-center justify-content-center" style="position:fixed; inset:0; background:var(--primary); color:white; z-index:9999;">
+                    <i class="fas fa-bolt animate__animated animate__bounceIn" style="font-size: 5rem; margin-bottom: 20px;"></i>
+                    <h1 class="animate__animated animate__zoomIn fw-800" style="font-size: 4rem;">GET READY!</h1>
+                    <p class="animate__animated animate__fadeInUp">The quiz is starting now...</p>
+                </div>
+            `;
+            setTimeout(() => {
+                window.location.href = "{{ url_for('student.attempt_quiz', quiz_id=quiz.id) }}";
+            }, 1800);
+        }
+    });
+</script>
+</body>
+</html>

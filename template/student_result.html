@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizX | Final Results</title>
+    <link rel="icon" type="image/png" 
+      href="{{ url_for('static', filename='favicon.png') }}">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/student_result.css') }}">
+</head>
+<body>
+<!-- This is a single-line comment -->
+<div class="header">
+    <span class="finish-tag">Quiz Over</span>
+    <h1>Final Results</h1>
+    <p style="color: var(--text-grey)">Great work, {{ session.username or 'Guest' }}!</p>
+</div>
+
+<div class="stats-container">
+    <div class="stat-card animate__animated animate__zoomIn">
+        <i class="fas fa-check-circle"></i>
+        <span class="stat-val">{{ result.score }} / {{ result.total }}</span>
+        <span class="stat-label">Correct</span>
+    </div>
+    <div class="stat-card animate__animated animate__zoomIn" style="animation-delay: 0.1s">
+        <i class="fas fa-bolt"></i>
+        <span class="stat-val">{{ result.total_points }}</span>
+        <span class="stat-label">Points</span>
+    </div>
+</div>
+
+<div class="text-center mt-4">
+    <h3 class="leaderboard-title"><i class="fas fa-trophy text-warning me-2"></i>Leaderboard</h3>
+</div>
+
+<div id="podium-area" class="podium-section"></div>
+<div id="leaderboard-list" class="list-section"></div>
+
+<div class="btn-footer">
+    <a href="{{ url_for('student.dashboard') }}" class="btn-dash">Back to Dashboard <i class="fas fa-arrow-right ms-2"></i></a>
+</div>
+
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+    const quizId = {{ quiz_id }};
+    const currentUserName = "{{ session.username or 'Guest' }}";
+    const socket = io();
+
+    socket.emit('join_quiz', { quiz_id: quizId });
+    socket.on('leaderboard_update', data => renderLeaderboard(Array.isArray(data) ? data : data.leaderboard));
+
+    // Initial fetch for leaderboard
+    fetch(`/student/api/leaderboard/${quizId}`)
+        .then(r => r.json())
+        .then(data => renderLeaderboard(data.leaderboard))
+        .catch(() => {
+            fetch(`/api/leaderboard/${quizId}`)
+                .then(r => r.json())
+                .then(data => renderLeaderboard(data.leaderboard))
+        });
+
+    function renderLeaderboard(data) {
+        if (!data) return;
+        data.sort((a, b) => b.points - a.points);
+        
+        const podium = document.getElementById('podium-area');
+        const list = document.getElementById('leaderboard-list');
+        podium.innerHTML = ''; list.innerHTML = '';
+
+        const top3 = data.slice(0, 3);
+        const others = data.slice(3);
+
+        let displayOrder = [];
+        if (top3.length === 1) displayOrder = [ {p: top3[0], r: 1, c: 'first'} ];
+        else if (top3.length === 2) displayOrder = [ {p: top3[1], r: 2, c: 'second'}, {p: top3[0], r: 1, c: 'first'} ];
+        else displayOrder = [ {p: top3[1], r: 2, c: 'second'}, {p: top3[0], r: 1, c: 'first'}, {p: top3[2], r: 3, c: 'third'} ];
+
+        displayOrder.forEach(item => {
+            const isMe = item.p.student === currentUserName;
+            podium.innerHTML += `
+                <div class="podium-item ${item.c} animate__animated animate__fadeInUp">
+                    ${item.r === 1 ? '<div class="crown"><i class="fas fa-crown"></i></div>' : ''}
+                    <div class="avatar-circle avatar-grad-${item.r}">${item.p.student.substring(0,2).toUpperCase()}</div>
+                    <div class="p-name">${isMe ? 'You' : item.p.student.split(' ')[0]}</div>
+                    <div class="p-score">${item.p.points} pts</div>
+                </div>`;
+        });
+
+        others.forEach((p, i) => {
+            const isMe = p.student === currentUserName;
+            list.innerHTML += `
+                <div class="player-row ${isMe ? 'is-me' : ''} animate__animated animate__slideInUp" style="animation-delay: ${i * 0.05}s">
+                    <div class="r-rank">#${i + 4}</div>
+                    <div class="r-avatar avatar-grad-3">${p.student[0].toUpperCase()}</div>
+                    <div class="r-name">${isMe ? 'You' : p.student}</div>
+                    <div class="r-score">${p.points} pts</div>
+                </div>`;
+        });
+    }
+</script>
+</body>
+</html>
